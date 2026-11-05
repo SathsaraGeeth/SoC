@@ -1,20 +1,3 @@
-/*
- * verification/uvm/isa/models/iss/src/memory.c
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
 #include "include/memory_backend.h"
 #include "isa_generated.h"
 

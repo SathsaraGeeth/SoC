@@ -1,21 +1,4 @@
 /*
- * mmacu_core.sv
- * 
- * Copyright (C) 2026, 2025 Sathsara Geeth
- */
-
-/*
- * Version 2.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- * 2.0     | For tiled mmul with smaller arrays
- */
-
-/*
  * Usage: dense mode
  *
  * This block computes:

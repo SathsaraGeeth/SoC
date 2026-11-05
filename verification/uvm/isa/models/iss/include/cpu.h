@@ -1,21 +1,4 @@
 /*
- * verification/uvm/isa/models/iss/include/cpu.h
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
-/*
  * Comments:
  * 1. Abstracts the CPU states
  *    1. General Purpose Registers (GPRs)

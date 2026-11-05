@@ -1,5 +1,0 @@
-`verilator_config
-
-# Common waivers for all targets
-lint_off -rule UNUSEDPARAM -file "rtl/core/*.sv"
-lint_off -rule UNUSED -file "rtl/core/*.sv"

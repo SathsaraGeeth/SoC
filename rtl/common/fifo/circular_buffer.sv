@@ -1,19 +1,3 @@
-/*
- * circular_buffer.sv
- * 
- * Copyright (C) 2026 Sathsara Geeth
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
 `timescale 1ns/1ps
 `default_nettype none
 

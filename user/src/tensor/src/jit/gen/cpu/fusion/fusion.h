@@ -1,21 +1,4 @@
 /*
- * user/src/tensor/src/jit/gen/cpu/fusion/fusion.h
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
-/*
  * Comments:
  * 1. Generates JIT kernels for fused ones
  *    the .op->parser-->SSA scalar(as .bc) is

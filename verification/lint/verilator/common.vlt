@@ -1,5 +1,0 @@
-`verilator_config
-
-# Narrow waivers tied to specific rules and files
-lint_off -rule UNUSEDPARAM -file "rtl/pkg/*.sv"
-lint_off -rule UNUSED -file "rtl/pkg/*.sv"

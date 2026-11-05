@@ -1,20 +1,3 @@
-/* 
- * nom.h
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
 /*
  * Comments:
  * 1. the read message returns the oldest message and invalidates it so that slot available for new messages.

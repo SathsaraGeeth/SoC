@@ -1,1 +1,0 @@
--f verification/lint/filelists/uart.f

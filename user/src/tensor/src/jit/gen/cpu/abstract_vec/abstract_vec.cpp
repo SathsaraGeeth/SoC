@@ -1,21 +1,4 @@
 /*
- * user/src/tensor/src/jit/gen/cpu/abstract_vec/abstract_vec.cpp
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
-/*
  * Comments:
  * 1. Reference: https://llvm.org/docs/Vectorizers.html
  * 2. TODO: look at here https://llvm.org/docs/SandboxVectorizer.html

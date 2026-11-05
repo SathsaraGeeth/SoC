@@ -1,20 +1,3 @@
-/* 
- * kernel/lib/printk.c
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
 /*
  * Comments:
  * 1. First uses early_console

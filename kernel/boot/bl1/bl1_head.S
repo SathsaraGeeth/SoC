@@ -1,20 +1,3 @@
-/* 
- * boot/bl1/head.S - BL1 ROM entry point
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
 /*
  * Comments:
  * 1. REGs: 0 (r0), ra (r1), sp (r2)

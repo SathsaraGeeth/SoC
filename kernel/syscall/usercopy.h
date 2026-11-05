@@ -1,21 +1,4 @@
 /*
- * kernel/syscall/usercopy.h
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
-/*
  * Comments:
  * 1. the dispatcher does not touch user memory,
  *    but needed for syscalls implementations

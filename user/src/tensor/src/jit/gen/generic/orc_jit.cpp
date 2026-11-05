@@ -1,20 +1,4 @@
 /*
- * user/src/tensor/src/jit/backend/generic/jit.cpp
- *
- * Copyright (C) 2026 Sathsara Geeth
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
-/*
  * Comments:
  * 1. Reference: https://llvm.org/docs/ORCv2.html
  * 2. Dont uses the LLVM ORC's laziness here use eagerly

@@ -10,7 +10,7 @@ parameter int SINGLE_REGION          = 1;          /* instantiate one cluster an
 parameter int NUM_MEM                = (SINGLE_REGION != 0) ? 1 : (GRID_X * GRID_Y) / 2;
 parameter int NUM_CLUSTER            = (SINGLE_REGION != 0) ? 1 : (GRID_X * GRID_Y) / 2;
 parameter int CORES_PER_CLUSTER      = 2;
-parameter int SYS_CORES_PER_CLUSTER  = 1;
+parameter int SYS_CORES_PER_CLUSTER  = 0;
 parameter int THREADS_PER_CLUSTER   = CORES_PER_CLUSTER * core_pkg::NUM_HW_THRDS;
 parameter int THREAD_OFFSET_BITS    = $clog2(THREADS_PER_CLUSTER);
 parameter int NUM_CORES             = NUM_CLUSTER * CORES_PER_CLUSTER;
@@ -35,7 +35,6 @@ topology:- 2D-mesh
 
 /*
 Global Virtual Address Space
-64bits  current core implementations are 32bit which is sheduled to upgrade to 64bit in next sprint
 
 the highest order p bits determine the pods it lives
 the next n bits determine the nodes it lives

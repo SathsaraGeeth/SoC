@@ -1,21 +1,3 @@
-/* 
- * kernel/dmtcp/include/soc.h - definition of Topology, Physical Memory and MMIO of the SoC
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
-
 #ifndef SOC_H
 #define SOC_H
 
@@ -85,7 +67,7 @@
 #endif
 
 /* thread id */
-#define SYS_CORES_PER_CLUSTER   1
+#define SYS_CORES_PER_CLUSTER   0
 #define SYS_ARRAY_MAC20I        0
 #define SYS_ARRAY_MACFP8        1
 #define SYS_ARRAY_MACFP8INT8     2

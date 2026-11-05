@@ -1,20 +1,3 @@
-/* 
- * verification/uvm/isa/commit_binder.sv
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
 /*
  * Comment:
  * 1. In the tb/ only this file is not agnostic

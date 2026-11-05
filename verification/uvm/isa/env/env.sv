@@ -1,20 +1,3 @@
-/* 
- * verification/uvm/isa/env.sv
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
 `include "uvm_macros.svh"
 import uvm_pkg::*;
 

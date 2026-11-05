@@ -1,2 +1,0 @@
-mac20i_v2_reset.sv: reset and clear empty result/control state.
-mac20i_v2_pipeline.sv: enable, signed multiplication, done, and output registers obey their recurrences.

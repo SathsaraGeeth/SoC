@@ -1,21 +1,4 @@
 /*
- * kernel/syscall/syscall_numbers.h
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
-/*
  * Comments:
  * 1. This is a frozen file, you can append but can not modify existing entries
  * 2. syscall number: |group(4b)|subgroup(4b)|call(8b)|

@@ -1,20 +1,4 @@
 /*
- * regfile.sv
- * 
- * Copyright (C) 2026 Sathsara Geeth
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
-/*
  * Comments:
  * 1. No forwarding
  * 2. Each bank has #NUM_HW_THRDS registers each memory is from a distinct thread, so no conflicts

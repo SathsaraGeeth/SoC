@@ -1,10 +1,4 @@
 /*
- * sys_core.sv
- *
- * Copyright (C) 2026 Sathsara Geeth
- */
-
-/*
  * Comments:
  * 1. Command structure:
  *      I.   typeI:     [start_blk/last_blk/start_last_blk/dense_flag/mac_type][A_size,B_size(if only dense, this is the element size)][addrA][addrB]

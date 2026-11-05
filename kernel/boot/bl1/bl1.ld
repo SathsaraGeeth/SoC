@@ -1,20 +1,3 @@
-/* 
- * boot/bl1/bl1.ld - linker script for BL1 ROM stage
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
 #include <soc.h>
 
 ENTRY(_bl1_start)

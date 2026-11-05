@@ -1,21 +1,4 @@
 /*
- * user/src/tensor/src/jit/gen/cpu/abstract_parallel/abstract_parallel.h
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
-/*
  * Comments:
  * 1. Reference: https://llvm.org/doxygen/classllvm_1_1Loop.html
  * 2. TODO: look at here 

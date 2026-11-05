@@ -1,22 +1,4 @@
 /*
- * kernel/trap/entry.S
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
-
-/*
  * Comments:
  * 1. This is the first thing runs after trap is triggered. (the hw supports vectored traps)
  * 2. This do:

@@ -1,1 +1,0 @@
--f verification/cdc/filelists/sys_arr.f

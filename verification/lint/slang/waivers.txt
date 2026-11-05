@@ -1,5 +1,0 @@
-# Slang waiver file
-# Format: --waive <rule> <file_pattern>
-# 
-# Example:
-# --waive unused-parameter rtl/vendor/*

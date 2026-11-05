@@ -1,20 +1,4 @@
 /*
- * page_engine.sv - Page transfer engine for SRAM backed memory
- * 
- * Copyright (C) 2026 Sathsara Geeth
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
-/*
  * Comments:
  * 1. i_req_addr  - the base address of the page,
  *    o_resp_addr - the base address line,

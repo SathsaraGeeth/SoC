@@ -1,7 +1,3 @@
-/*
- * Shceduled to replaced with mtimer_cmp && watch_dog
- */
-
 `timescale 1ns/1ps
 `default_nettype none
 

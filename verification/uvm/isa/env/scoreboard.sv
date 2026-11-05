@@ -1,20 +1,3 @@
-/* 
- * verification/uvm/isa/scoreboard.sv
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
 /*
  * Comments:
  * 1. Asserts the equivalance with the ISS

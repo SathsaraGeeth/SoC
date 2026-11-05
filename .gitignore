@@ -44,7 +44,8 @@ __BIN__/
 EDA/external/
 EDA/bin/
 EDA/emul/INSTALL/
-compiler/llvm-project/
+/compiler/
+/isa/
 
 # generated regression output
 regressions/results/

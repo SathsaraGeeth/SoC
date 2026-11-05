@@ -1,3 +1,0 @@
-fp_iter_reset.sv: reset returns the controller to idle and clears pipe requests.
-fp_iter_routing.sv: lane readiness, ownership, and normal pipe bypass are exact.
-fp_iter_special.sv: divide-by-zero and negative-square-root return exact FP32 values.

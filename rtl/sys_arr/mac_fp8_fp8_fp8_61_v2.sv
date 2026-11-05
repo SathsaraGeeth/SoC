@@ -1,20 +1,3 @@
-/*
- * mac_fp8_fp8_fp8_61.sv
- * 
- * Copyright (C) 2025, 2026 Sathsara Geeth
- */
-
-/*
- * Version 2.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- * 2.0     | Multiple tiles in flight & simpler control
- */
-
 `timescale 1ns/1ps
 `default_nettype none
 

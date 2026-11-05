@@ -1,2 +1,0 @@
-mac_fp8_reset.sv: reset and clear empty all externally visible control state.
-mac_fp8_pipeline.sv: enable, unpack/product capture, done composition, and output timing are exact.

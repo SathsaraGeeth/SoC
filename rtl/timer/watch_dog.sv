@@ -1,20 +1,4 @@
 /*
- * watch_dog.sv
- * 
- * Copyright (C) 2026 Sathsara Geeth
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
-/*
  * Comments:
  * 1. Should live in a seprate clk domain (always on)
  * 2. kick reg, enable reg, lock reg, timeout reg

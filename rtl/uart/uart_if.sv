@@ -1,19 +1,3 @@
-/*
- * uart_if.sv
- *
- * Copyright (C) 2024 Sathsara Geeth
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | 64-bit MMIO implementation
- */
-
 `timescale 1ns/1ps
 `default_nettype none
 

@@ -1,20 +1,3 @@
-/* 
- * kernel/boot/bl2/smp/smp_asm.S
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
 /*
  * Comments:
  * 1. For each memory region a mailbox

@@ -1,20 +1,3 @@
-/*
- * verification/uvm/isa/models/iss/src/integer.c
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
 #include "../include/iss.h"
 #include "include/cpu_impl.h"
 #include "include/execution.h"

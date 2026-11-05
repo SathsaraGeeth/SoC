@@ -1,20 +1,3 @@
-/*
- * kernel/sync/rcu/rcu.c
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
 #include "rcu.h"
 #include <atomic.h>
 #include <spinlock.h>

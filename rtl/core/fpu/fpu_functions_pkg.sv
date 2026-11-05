@@ -1,9 +1,3 @@
-/*
- * fpu_functions_pkg.sv
- * 
- * Copyright (C) 2026 Sathsara Geeth
- */
-
 `timescale 1ps/1ps
 `default_nettype none
 

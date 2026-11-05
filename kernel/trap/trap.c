@@ -1,20 +1,3 @@
-/*
- * kernel/trap/trap.c
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
 #include <trap/trap.h>
 
 #include <drivers/timer/timer.h>

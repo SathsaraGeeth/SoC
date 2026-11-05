@@ -1,21 +1,4 @@
 /*
- * kernel/syscall/syscall_table.c
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
-/*
  * Comments:
  * 1. here we do not implement syscalls
  *    the implementation should come from the relvent subsystem

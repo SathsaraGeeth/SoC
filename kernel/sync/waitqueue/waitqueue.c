@@ -1,21 +1,4 @@
-/*
- * kernel/sync/waitqueue/waitqueue.c
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
 #include "waitqueue.h"
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
 
 void waitqueue_init(waitqueue_head_t *queue) {
     spinlock_init(&queue->lock);

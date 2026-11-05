@@ -1,20 +1,3 @@
-/*
- * kernel/sync/spinlock/spinlock.c
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
 #include "spinlock.h"
 #include "../../irq/irq.h"
 #include "../atomic/atomic.h"

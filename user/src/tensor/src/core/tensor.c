@@ -1,20 +1,3 @@
-/* 
- * user/src/tensor/src/core/tensor.c
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
 #include "tensor_core.h"
 #include "memory.h"
 #include <stdlib.h>

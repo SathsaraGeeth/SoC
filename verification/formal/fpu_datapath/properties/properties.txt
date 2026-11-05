@@ -1,2 +1,0 @@
-fpu_datapath_reset.sv: reset flushes both arithmetic pipes and the iteration controller.
-fpu_datapath_routing.sv: lane eligibility, result routing, and metadata are preserved.

@@ -1,22 +1,3 @@
-/* 
- * smp_early.S - early SMP implementation
- *
- * Copyright (C) 2026 Sathsara Geeth
- *
- */
-
-/*
- * Version 1.0
- *
- * Version History
- *
- * Version | Description
- * --------+-----------------------------------------
- * 1.0     | Initial implementation
- */
-
-
-
 .global             release_aps
 .global             ap_entry_fn
 .global             ap_release_flag
