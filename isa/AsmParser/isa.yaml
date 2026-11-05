@@ -1,0 +1,33 @@
+# isa.yaml
+#
+# Copyright (C) 2026 Sathsara Geeth
+#
+# Version 1.0
+#
+# Version History
+#
+# Version | Description
+# --------+-----------------------------------------
+# 1.0     | Initial implementation
+#
+# Comments:
+# 1.
+
+assembly:
+  register_prefix: r
+  register_count:  32
+  mnemonic_case_insensitive: true
+  operands:
+    - register
+    - integer
+    - expression
+  aliases:
+    csrr:  CSRRS
+    csrw:  CSRRW
+    csrs:  CSRRS
+    csrc:  CSRRC
+    fence: FENCE.d.ls.ls
+    nop:   ADDI.i64
+    la:    LUI+ADDI.i64
+    lr.w:  LOAD.i32.res
+    sc.w:  CONDSTORE.32

@@ -1,0 +1,23 @@
+# Decoder safety proof.
+
+[options]
+mode prove
+depth 4
+
+[engines]
+smtbmc boolector
+
+[script]
+plugin -i slang
+read_slang -D FORMAL --top decoder_formal isa_pkg.sv core_pkg.sv decoder.sv decoder_env.sv
+prep -top decoder_formal
+
+[files]
+../../../rtl/isa/isa_pkg.sv
+../../../rtl/core/core_pkg.sv
+../../../build/formal/decoder/generated/decoder.sv
+env/decoder_env.sv
+env/decoder_coverpoints.sv
+properties/decoder_invariants.sv
+properties/decoder_routes.sv
+

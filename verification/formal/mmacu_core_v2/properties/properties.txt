@@ -1,0 +1,11 @@
+Proofs
+------
+P1. Reset clears array-valid, flush, result, and completion state.
+P2. Native-mode A/B readiness requires both operands and array capacity.
+P3. Backpressured output data and pipeline/flush state remain stable.
+P4. An accepted end beat enters flushing at count zero.
+P5. An unstalled flush advances and exits at its programmed terminal count.
+
+Formal uses M=2 and the INT8 static specialization; the UVM suite checks M=8
+arithmetic and the standalone MAC proofs cover both implemented data types.
+

@@ -1,0 +1,3 @@
+sys_address_generator_reset.sv: reset clears state, counters, valid, and done.
+sys_address_generator_protocol.sv: active counters stay bounded and stalled output is stable.
+sys_address_generator_first.sv: the first A-stream entry captures and encodes every request field.

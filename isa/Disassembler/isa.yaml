@@ -1,0 +1,20 @@
+# isa.yaml
+#
+# Copyright (C) 2026 Sathsara Geeth
+#
+# Version 1.0
+#
+# Version History
+#
+# Version | Description
+# --------+-----------------------------------------
+# 1.0     | Initial implementation
+#
+# Comments:
+# 1.
+
+disassembler:
+  instruction_width: 32
+  byte_order:        little
+  register_class:    GPR
+  register_count:    32

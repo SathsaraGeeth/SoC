@@ -1,0 +1,11 @@
+# NOC block Yosys script
+read_verilog -formal -sv \
+    rtl/soc/topology_pkg.sv \
+    rtl/soc/router.sv
+
+hierarchy -check -top router
+
+proc
+opt_clean
+check -assert
+stat

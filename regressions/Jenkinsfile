@@ -1,0 +1,177 @@
+/*
+ * Regression pipeline.
+ * - Reads the suites.json and selects
+ *   the suites based on tier and run them parrallely
+ *   this copies (sparse) the repo but after the next run it
+ *   deletes the previous one
+ * - abort previous builds if a new one is triggered
+ */
+
+
+def loadSuites(String text, String requestedTier, String requestedSuites) {
+    writeFile file: 'ci-suites.json', text: text
+    def output
+    withEnv([
+        "CI_SELECT_TIER=${requestedTier}",
+        "CI_SELECT_SUITES=${requestedSuites}"
+    ]) {
+        output = sh(
+            returnStdout: true,
+            script: 'python3 regressions/ci/select_suites.py ci-suites.json'
+        ).trim()
+    }
+    if (!output) {
+        return []
+    }
+    return output.readLines().collect { line ->
+        def fields = line.split('\t', -1)
+        [id: fields[0], agent: fields[1], timeout_minutes: fields[2] as int]
+    }
+}
+
+// The repository contains a very large vendored LLVM checkout which is not
+// needed by the CI commands. Keep it out of every Jenkins workspace.
+// The suite selector also stays outside Groovy JSON/script approval paths.
+def checkoutSparse(String revision = null) {
+    checkout([
+        $class: 'GitSCM',
+        branches: revision ? [[name: revision]] : scm.branches,
+        doGenerateSubmoduleConfigurations: false,
+        extensions: [[
+            $class: 'CloneOption',
+            noTags: true,
+            shallow: false,
+            reference: '/mnt/fileserver/prj/dmctp/.git',
+            timeout: 30
+        ], [
+            $class: 'SparseCheckoutPaths',
+            sparseCheckoutPaths: [
+                [$class: 'SparseCheckoutPath', path: '*'],
+                [$class: 'SparseCheckoutPath', path: '!compiler/llvm-project/']
+            ]
+        ]],
+        userRemoteConfigs: scm.userRemoteConfigs
+    ])
+}
+
+def jobProperties = [
+    buildDiscarder(logRotator(numToKeepStr: '30', artifactNumToKeepStr: '10')),
+    disableConcurrentBuilds(abortPrevious: true),
+    parameters([
+        choice(
+            name: 'CI_TIER',
+            choices: ['smoke', 'presubmit', 'nightly', 'weekly'],
+            description: 'Run this tier and all faster tiers.'
+        ),
+        string(
+            name: 'SUITES',
+            defaultValue: '',
+            description: 'Optional comma-separated suite IDs.'
+        )
+    ])
+]
+def buildTriggers = []
+// Presubmit trigger verification marker.
+
+
+def jobName = env.JOB_NAME ?: ''
+if (jobName.endsWith('dmctp-local-ci')) {
+    buildTriggers << pollSCM('H/2 * * * *')
+} else if (jobName.endsWith('dmctp-nightly-ci')) {
+    buildTriggers << cron('H H * * *')
+} else if (jobName.endsWith('dmctp-weekly-ci')) {
+    buildTriggers << cron('H H * * 0')
+}
+if (!buildTriggers.isEmpty()) {
+    jobProperties << pipelineTriggers(buildTriggers)
+}
+properties(jobProperties)
+
+def manifestText
+def latestCommitMessage
+def buildRevision
+def effectiveTier
+def selected
+node('linux') {
+    try {
+        stage('Discover') {
+            deleteDir()
+            checkoutSparse()
+            buildRevision = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+            manifestText = readFile('regressions/suites.json')
+            latestCommitMessage = sh(
+                returnStdout: true,
+                script: 'git log -1 --pretty=%B'
+            ).trim()
+            def timerBuild = !currentBuild.getBuildCauses('hudson.triggers.TimerTrigger$TimerTriggerCause').isEmpty()
+            def scmBuild = !currentBuild.getBuildCauses('hudson.triggers.SCMTrigger$SCMTriggerCause').isEmpty()
+            def scheduledTier = jobName.endsWith('dmctp-weekly-ci') ? 'weekly' : 'nightly'
+            def commitTier = latestCommitMessage.contains('[presubmit]') ? 'presubmit' : 'smoke'
+            effectiveTier = timerBuild ? scheduledTier : (scmBuild ? commitTier : (params.CI_TIER ?: 'smoke'))
+            selected = loadSuites(manifestText, effectiveTier, params.SUITES ?: '')
+        }
+    } finally {
+        // The discovery checkout is disposable and must not consume disk
+        // space after the manifest and commit message have been read.
+        deleteDir()
+    }
+}
+
+echo "CI policy selected tier '${effectiveTier}'"
+currentBuild.displayName = "#${env.BUILD_NUMBER} ${effectiveTier}"
+if (selected.isEmpty()) {
+    error('No regression suites matched the requested selection')
+}
+currentBuild.description = "${selected.size()} suites; tier ${effectiveTier}"
+
+def readableBuildDir = "/mnt/fileserver/prj/dmctp/regressions/results/${env.JOB_NAME}/build-${env.BUILD_NUMBER}"
+echo "Readable results: ${readableBuildDir}"
+
+def branches = [:]
+selected.each { rawSuite ->
+    def suite = [
+        id: rawSuite.id,
+        agent: rawSuite.agent,
+        timeout_minutes: rawSuite.timeout_minutes
+    ]
+    branches[suite.id] = {
+        node(suite.agent ?: 'linux') {
+            ws("${env.WORKSPACE}@${suite.id}") {
+                deleteDir()
+                try {
+                    stage(suite.id) {
+                        checkoutSparse(buildRevision)
+                        timeout(time: (suite.timeout_minutes ?: 30) as int, unit: 'MINUTES') {
+                            withEnv([
+                                "CI_SUITE=${suite.id}",
+                                "CI_TIER=${effectiveTier}",
+                                'CI_WORKSPACE_RESULTS_DIR=build/ci-results',
+                                "CI_SHARED_BUILD_DIR=${readableBuildDir}",
+                                'DMCTP_LLVM_BIN=/mnt/fileserver/prj/dmctp/compiler/llvm-project/build-experimental/bin',
+                                'PYTHONDONTWRITEBYTECODE=1'
+                            ]) {
+                                sh "python3 regressions/ci/run_suite.py '${suite.id}'"
+                            }
+                        }
+                    }
+                } finally {
+                    junit(
+                        testResults: "build/ci-results/suites/${suite.id}/junit.xml",
+                        allowEmptyResults: true,
+                        skipPublishingChecks: false
+                    )
+                    archiveArtifacts(
+                        artifacts: "build/ci-results/suites/${suite.id}/**",
+                        allowEmptyArchive: true
+                    )
+                    // Remove successful and failed checkouts alike. The
+                    // deleteDir before checkout also cleans aborted-build
+                    // leftovers on the next run.
+                    deleteDir()
+                }
+            }
+        }
+    }
+}
+
+parallel branches

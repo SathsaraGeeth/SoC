@@ -1,0 +1,36 @@
+# isa.yaml
+#
+# Copyright (C) 2026 Sathsara Geeth
+#
+# Version 1.0
+#
+# Version History
+#
+# Version | Description
+# --------+-----------------------------------------
+# 1.0     | Initial implementation
+#
+# Comments:
+# 1. ELF uses RISC-V relocations & ELF numbers
+#    as there is no reason to invent new ones
+
+elf:
+  class_bits:        64
+  byte_order:        little
+  machine:           EM_RISCV
+  relocation_addend: true
+  relocations:
+    data_32:         R_RISCV_32
+    data_64:         R_RISCV_64
+    branch:          R_RISCV_BRANCH
+    jump:            R_RISCV_JAL
+    absolute_hi20:   R_RISCV_HI20
+    absolute_lo12_i: R_RISCV_LO12_I
+    pcrel_hi20:      R_RISCV_PCREL_HI20
+    pcrel_lo12_i:    R_RISCV_PCREL_LO12_I
+    got_hi20:        R_RISCV_GOT_HI20
+    tprel_hi20:      R_RISCV_TPREL_HI20
+    tprel_lo12_i:    R_RISCV_TPREL_LO12_I
+    tprel_add:       R_RISCV_TPREL_ADD
+    tls_got_hi20:    R_RISCV_TLS_GOT_HI20
+    tls_gd_hi20:     R_RISCV_TLS_GD_HI20

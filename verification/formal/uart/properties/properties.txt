@@ -1,0 +1,40 @@
+Proofs
+------
+
+Reset
+P1. Reset returns both tx,rx and both FIFOs to their idle/empty state.
+
+FIFO status
+P2. RX/TX empty flags are asserted exactly when their levels are zero.
+P3. RX/TX full flags are asserted exactly when their levels equal depth.
+P4. RX/TX levels never exceed their configured depths.
+P5. TX enqueue_ready and RX dequeue_ready agree with FIFO status.
+
+Transmitter
+P6. The TX line is high while the transmitter is idle.
+P7. The TX line is low while transmitting the start bit.
+P8. The TX state cannot change without a baud tick.
+
+Protocol
+P9. A baud tick advances IDLE to START only when TX data is available.
+P10. A baud tick advances START to the first data bit state.
+
+Receiver
+P11. The RX state cannot change without a sample tick.
+P12. RX serial_data_valid can change only following a sample tick.
+P13. RX parallel_data_valid can change only following a sample tick.
+
+Baud
+P14. The baud tick is asserted exactly when the programmed baud counter expires.
+P15. The sample tick is asserted exactly when the programmed sample counter expires.
+
+Cover
+-----------
+
+C1. Cover reset release with both FIFOs empty and TX idle.
+C2. Cover accepting a byte into the TX FIFO.
+C3. Cover TX START, first data bit, last data bit, and STOP states.
+C4. Cover RX start detection and entry into the first data bit state.
+C5. Cover a complete received byte being offered to the RX FIFO.
+C6. Cover CPU dequeue of a received byte.
+C7. Cover a programmed baud divisor change while out of reset.

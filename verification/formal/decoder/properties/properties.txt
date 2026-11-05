@@ -1,0 +1,13 @@
+Proofs
+------
+
+P1. Raw instruction, destination, and funct3 are preserved.
+P2. Register writes never target x0.
+P3. Specialized flags imply the correct parent operation class.
+P4. Major load/store/control-flow/upper-immediate opcodes route correctly.
+
+Cover
+-----
+
+C1. Integer ALU, load/store, branch, jump, CSR, and FPU routes are reachable.
+

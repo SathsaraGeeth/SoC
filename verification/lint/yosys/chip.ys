@@ -1,0 +1,38 @@
+# Chip-level Yosys script
+script verification/lint/yosys/common.ys
+
+# Read all design modules
+read_verilog -formal -sv \
+    rtl/common/reset/reset_sync.sv \
+    rtl/core/regfile.sv \
+    rtl/core/alu.sv \
+    rtl/core/decoder.sv \
+    rtl/core/csr.sv \
+    rtl/core/fpu.sv \
+    rtl/core/core.sv \
+    rtl/memory/page_engine.sv \
+    rtl/memory/sram_bank.sv \
+    rtl/memory/memory.sv \
+    rtl/soc/router.sv \
+    rtl/soc/soc.sv \
+    rtl/sys_arr/mac20i.sv \
+    rtl/sys_arr/mac20i_v2.sv \
+    rtl/sys_arr/mac_fp8_fp8_fp8_61.sv \
+    rtl/sys_arr/mac_fp8_fp8_fp8_61_v2.sv \
+    rtl/sys_arr/mmacu_core.sv \
+    rtl/sys_arr/mmacu_core_v2.sv \
+    rtl/sys_arr/sys_address_generator.sv \
+    rtl/sys_arr/sys_core.sv \
+    rtl/sys_arr/mmacu.sv \
+    rtl/timer/timer.sv \
+    rtl/uart/uart_if.sv \
+    rtl/uart/uart_mmio.sv \
+    rtl/uart/uart.sv
+
+hierarchy -check -top soc
+
+proc
+opt_clean
+
+check -assert
+stat

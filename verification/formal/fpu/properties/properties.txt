@@ -1,0 +1,3 @@
+fpu_reset.sv: reset clears busy and output state.
+fpu_handshake.sv: ready and held-result behavior follow the adapter contract.
+fpu_simple.sv: simple operations complete with the accepted result and thread tag.

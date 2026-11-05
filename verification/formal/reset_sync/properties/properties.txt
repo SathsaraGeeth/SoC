@@ -1,0 +1,16 @@
+Proofs
+------
+
+Reset
+P1. An asynchronous reset clears every synchronizer stage and the output.
+P2. The reset output always equals the final synchronizer stage.
+
+Protocol
+P3. Reset release advances exactly one pipeline stage per clock.
+P4. Once released, reset remains released until asynchronous reset assertion.
+
+Cover
+-----
+
+C1. Cover a complete reset release.
+C2. Cover asynchronous reset reassertion after release.

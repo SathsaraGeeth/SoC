@@ -1,0 +1,23 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>DMCTP framebuffer</title>
+<style>body{background:#181818;color:#ddd;font:16px sans-serif;margin:2rem}img{image-rendering:pixelated;border:1px solid #555;width:min(960px,100%);background:#000}</style>
+<h1>DMCTP framebuffer</h1>
+<p>Region-0 /dev/fb0 — 32 × 32 RGB332 (8-bit)</p>
+<p id="status">Waiting for framebuffer scanout…</p>
+<img id="fb" alt="Waiting for fb_demo to draw a frame">
+<script>
+const image = document.querySelector('#fb');
+const status = document.querySelector('#status');
+function refresh() { image.src = '/build/simulator/framebuffer.bmp?t=' + Date.now(); }
+image.addEventListener('load', () => {
+  image.style.display = 'block';
+  status.textContent = 'Live frame loaded at ' + new Date().toLocaleTimeString();
+});
+image.addEventListener('error', () => {
+  status.textContent = 'Waiting for build/simulator/framebuffer.bmp…';
+  image.alt = 'Waiting for fb_demo to draw a frame';
+});
+refresh();
+setInterval(refresh, 250);
+</script>

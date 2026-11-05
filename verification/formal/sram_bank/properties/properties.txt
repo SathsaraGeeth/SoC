@@ -1,0 +1,7 @@
+P1 reset state
+P2 request readiness
+P3 response generation and metadata
+P4 backpressure stability
+P5 SC match
+P6 LR reservation
+

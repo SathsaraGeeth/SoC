@@ -1,0 +1,10 @@
+# Kernel Kconfig
+mainmenu "DMCTP Kernel Configuration"
+
+config RISCV
+    bool "RISC-V Architecture"
+    default y
+
+config SMP
+    bool "Symmetric Multi-Processing support"
+    default y

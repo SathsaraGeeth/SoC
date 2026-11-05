@@ -1,0 +1,23 @@
+# Circular buffer safety proofs.
+
+[options]
+mode prove
+depth 24
+
+[engines]
+abc pdr
+
+[script]
+plugin -i slang
+read_slang -D FORMAL --top circular_buffer_formal circular_buffer.sv circular_buffer_env.sv
+prep -top circular_buffer_formal
+
+[files]
+../../../rtl/common/fifo/circular_buffer.sv
+env/circular_buffer_env.sv
+env/circular_buffer_assumptions.sv
+env/circular_buffer_coverpoints.sv
+properties/circular_buffer_reset.sv
+properties/circular_buffer_status.sv
+properties/circular_buffer_protocol.sv
+properties/circular_buffer_data.sv

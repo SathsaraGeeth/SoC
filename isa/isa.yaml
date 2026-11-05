@@ -1,0 +1,422 @@
+# isa.yaml
+#
+# Copyright (C) 2026 Sathsara Geeth
+#
+# Version 1.0
+#
+# Version History
+#
+# Version | Description
+# --------+-----------------------------------------
+# 1.0     | Initial implementation
+#
+# Comments:
+# 1.
+
+meta:
+  xlen: 64
+  reg_count: 32
+  x0_hardwired_zero: true
+  inst_width: 32
+requirements:
+  definitions:
+  - I
+  - M
+  - A
+  - System
+  - F
+  patterns:
+  - I
+  - M
+  - A
+  - System
+  - F
+specifications:
+  target: TargetIdentity/TargetInfo/isa.yaml
+  registers: Architecture/Registers/isa.yaml
+  abi: Architecture/ABI/isa.yaml
+  features: Architecture/Features/isa.yaml
+  disassembler: Disassembler/isa.yaml
+  asm_parser: AsmParser/isa.yaml
+  mc_target_desc: MCTargetDesc/isa.yaml
+modules:
+  I:
+    path: Architecture/Instructions/ISA/I.yaml
+  M:
+    path: Architecture/Instructions/ISA/M.yaml
+    requires:
+    - I
+  A:
+    path: Architecture/Instructions/ISA/A.yaml
+    requires:
+    - I
+  System:
+    path: Architecture/Instructions/ISA/System.yaml
+    requires:
+    - I
+  F:
+    path: Architecture/Instructions/ISA/F.yaml
+    requires:
+    - I
+fields:
+  opcode:
+    bits:
+    - 6
+    - 0
+  rd:
+    bits:
+    - 11
+    - 7
+  funct3:
+    bits:
+    - 14
+    - 12
+  rs1:
+    bits:
+    - 19
+    - 15
+  rs2:
+    bits:
+    - 24
+    - 20
+  funct7:
+    bits:
+    - 31
+    - 25
+  funct6:
+    bits:
+    - 31
+    - 26
+formats:
+  R:
+    fields:
+    - opcode
+    - rd
+    - funct3
+    - rs1
+    - rs2
+    - funct7
+  I:
+    fields:
+    - opcode
+    - rd
+    - funct3
+    - rs1
+    imm:
+      bits:
+      - 31
+      - 20
+      signed: true
+  S:
+    fields:
+    - opcode
+    - funct3
+    - rs1
+    - rs2
+    imm:
+      parts:
+      - src:
+        - 11
+        - 7
+        dst:
+        - 4
+        - 0
+      - src:
+        - 31
+        - 25
+        dst:
+        - 11
+        - 5
+      signed: true
+  B:
+    fields:
+    - opcode
+    - funct3
+    - rs1
+    - rs2
+    imm:
+      parts:
+      - src:
+        - 11
+        - 8
+        dst:
+        - 4
+        - 1
+      - src:
+        - 30
+        - 25
+        dst:
+        - 10
+        - 5
+      - src:
+        - 7
+        - 7
+        dst:
+        - 11
+        - 11
+      - src:
+        - 31
+        - 31
+        dst:
+        - 12
+        - 12
+      signed: true
+  U:
+    fields:
+    - opcode
+    - rd
+    imm:
+      bits:
+      - 31
+      - 12
+      shift: 12
+      signed: true
+  J:
+    fields:
+    - opcode
+    - rd
+    imm:
+      parts:
+      - src:
+        - 30
+        - 21
+        dst:
+        - 10
+        - 1
+      - src:
+        - 20
+        - 20
+        dst:
+        - 11
+        - 11
+      - src:
+        - 19
+        - 12
+        dst:
+        - 19
+        - 12
+      - src:
+        - 31
+        - 31
+        dst:
+        - 20
+        - 20
+      signed: true
+  R4:
+    fields:
+    - opcode
+    - rd
+    - funct3
+    - rs1
+    - rs2
+    rs3:
+      bits:
+      - 31
+      - 27
+    funct2:
+      bits:
+      - 26
+      - 25
+opcodes:
+  LOAD: 3
+  STORE: 35
+  CONDST: 43
+  AMO: 47
+  FENCE: 15
+  BRANCH: 99
+  JUMP: 111
+  JUMPR: 103
+  AUIPC: 23
+  LUI: 55
+  IALU: 19
+  RALU: 51
+  IALUW: 27
+  RALUW: 59
+  SYSTEM: 115
+  FLOAD: 7
+  FSTORE: 39
+  FMADD: 67
+  FMSUB: 71
+  FALU: 83
+op_enums:
+  alu_op:
+    width: 5
+    values:
+    - ALU_ADD
+    - ALU_SUB
+    - ALU_SLL
+    - ALU_SLT
+    - ALU_SLTU
+    - ALU_XOR
+    - ALU_SRL
+    - ALU_SRA
+    - ALU_OR
+    - ALU_AND
+    - ALU_MUL
+    - ALU_MULH
+    - ALU_MULHSU
+    - ALU_MULHU
+  fpu_op:
+    width: 5
+    values:
+    - FPU_FADD
+    - FPU_FSUB
+    - FPU_FMUL
+    - FPU_FDIV
+    - FPU_FSQRT
+    - FPU_FMIN
+    - FPU_FMAX
+    - FPU_FCMP_EQ
+    - FPU_FCMP_LT
+    - FPU_FCMP_LE
+    - FPU_CVT_F2I
+    - FPU_CVT_F2U
+    - FPU_CVT_I2F
+    - FPU_CVT_U2F
+    - FPU_CVT_F2F16
+    - FPU_CVT_F16_F
+    - FPU_CVT_F2BF16
+    - FPU_CVT_BF16_F
+    - FPU_CVT_F2I8
+    - FPU_CVT_F2U8
+    - FPU_CVT_I8_F
+    - FPU_CVT_U8_F
+  ls_op:
+    width: 5
+    values:
+    - LS_LOAD_I8
+    - LS_LOAD_I16
+    - LS_LOAD_I32
+    - LS_LOAD_I64
+    - LS_LOAD_U8
+    - LS_LOAD_U16
+    - LS_LOAD_U32
+    - LS_LOAD_F16
+    - LS_LOAD_BF16
+    - LS_STORE_8
+    - LS_STORE_16
+    - LS_STORE_32
+    - LS_STORE_64
+    - LS_STORE_F16
+    - LS_STORE_BF16
+    - LS_CSTORE_8
+    - LS_CSTORE_16
+    - LS_CSTORE_32
+    - LS_CSTORE_64
+    - LS_CSTORE_8_RL
+    - LS_CSTORE_16_RL
+    - LS_CSTORE_32_RL
+    - LS_CSTORE_64_RL
+csrs:
+- addr: 768
+  name: mstatus
+- addr: 772
+  name: mie
+- addr: 836
+  name: mip
+- addr: 833
+  name: mepc
+- addr: 834
+  name: mcause
+- addr: 773
+  name: mtvec
+- addr: 832
+  name: mscratch
+- addr: 3
+  name: fcsr
+- addr: 1985
+  name: thread_id
+- addr: 1987
+  name: virtual_thrd_id
+- addr: 1988
+  name: page_msg_arg0
+- addr: 1989
+  name: page_msg_arg1
+- addr: 1990
+  name: page_msg_cmd
+- addr: 256
+  name: sstatus
+- addr: 260
+  name: sie
+- addr: 324
+  name: sip
+- addr: 321
+  name: sepc
+- addr: 322
+  name: scause
+- addr: 323
+  name: stval
+- addr: 261
+  name: stvec
+- addr: 320
+  name: sscratch
+- addr: 770
+  name: medeleg
+- addr: 771
+  name: mideleg
+mtvec_modes:
+  width: 2
+  values:
+    direct: 0
+    vectored: 1
+trap_causes:
+  width: 6
+  values:
+    inst_addr_misaligned: 0
+    inst_access_fault: 1
+    illegal_instr: 2
+    breakpoint: 3
+    load_addr_misaligned: 4
+    load_access_fault: 5
+    store_addr_misaligned: 6
+    store_access_fault: 7
+    ecall_u: 8
+    ecall_s: 9
+    ecall_m: 11
+    inst_page_fault: 12
+    load_page_fault: 13
+    store_page_fault: 15
+    double_trap: 16
+    software_check: 18
+    hardware_error: 19
+    inst_guest_page_fault: 20
+    load_guest_page_fault: 21
+    virtual_instruction: 22
+    store_guest_page_fault: 23
+interrupt_causes:
+  supervisor_software: 1
+  virtual_supervisor_software: 2
+  machine_software: 3
+  supervisor_timer: 5
+  virtual_supervisor_timer: 6
+  machine_timer: 7
+  supervisor_external: 9
+  virtual_supervisor_external: 10
+  machine_external: 11
+  supervisor_guest_external: 12
+  counter_overflow: 13
+csr_slots:
+- mstatus
+- mie
+- mip
+- mepc
+- mcause
+- mtvec
+- mscratch
+- fcsr
+- thread_id
+- virtual_thrd_id
+- satp
+- page_msg_arg0
+- page_msg_arg1
+- page_msg_cmd
+- sstatus
+- sie
+- sip
+- sepc
+- scause
+- stval
+- stvec
+- sscratch
+- medeleg
+- mideleg

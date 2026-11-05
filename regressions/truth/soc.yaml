@@ -1,0 +1,13 @@
+grid_x: 2
+grid_y: 2
+single_region: true
+cores_per_cluster: 2
+threads_per_core: 4
+mesh_coord_bits: 4
+page_words_bits: 9
+num_pages_bits: 10
+sys_cores_per_cluster: 0
+sys_array_mac_t: 2
+sys_array_m: 8
+sys_array_max_dense_mat_sz: 256
+clock_freq_hz: 1000000000

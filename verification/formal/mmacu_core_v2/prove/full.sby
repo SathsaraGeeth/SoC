@@ -1,0 +1,20 @@
+[options]
+mode prove
+depth 32
+[engines]
+smtbmc boolector
+[script]
+plugin -i slang
+read_slang -D FORMAL --top mmacu_core_v2_formal sys_cnfg_small_pkg.sv circular_buffer.sv common.sv mac20i_v2.sv mmacu_core_v2.sv mmacu_core_v2_env.sv
+prep -top mmacu_core_v2_formal
+[files]
+env/sys_cnfg_small_pkg.sv
+../../../rtl/common/fifo/circular_buffer.sv
+../../../rtl/sys_arr/common.sv
+mac20i_v2.sv ../../../build/formal/mmacu_core_v2/generated/mac20i_v2.sv
+mmacu_core_v2.sv ../../../build/formal/mmacu_core_v2/generated/mmacu_core_v2.sv
+env/mmacu_core_v2_env.sv
+env/mmacu_core_v2_assumptions.sv
+env/mmacu_core_v2_coverpoints.sv
+properties/mmacu_core_v2_reset.sv
+properties/mmacu_core_v2_protocol.sv

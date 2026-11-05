@@ -1,0 +1,193 @@
+#include "page.h"
+#include "frame.h"
+#include "clock.h"
+#include "page_msg.h"
+#include "mapping.h"
+#include "../fs/file.h"
+#include "../proc/proc.h"
+#include "../lib/printk.h"
+#include <stddef.h>
+
+static page_t pages[4096];
+static int next_page_idx = 0;
+
+void page_system_init(void) {
+    for (int i = 0; i < 4096; i++) {
+        pages[i].refcount = 0;
+        pages[i].present = 0;
+    }
+}
+
+page_t *page_lookup(uint32_t backing_pa) {
+    for (int i = 0; i < next_page_idx; i++) {
+        if (pages[i].present && pages[i].backing_pa == backing_pa) {
+            return &pages[i];
+        }
+    }
+    return NULL;
+}
+
+page_t *page_create(uint32_t backing_pa) {
+    for (int i = 0; i < next_page_idx; i++) {
+        if (!pages[i].present) {
+            pages[i].backing_pa = backing_pa;
+            pages[i].sram_ppn = -1;
+            pages[i].refcount = 1;
+            pages[i].dirty = 0;
+            pages[i].present = 1;
+            return &pages[i];
+        }
+    }
+    if (next_page_idx >= 4096) return NULL;
+    page_t *p = &pages[next_page_idx++];
+    p->backing_pa = backing_pa;
+    p->sram_ppn = -1;
+    p->refcount = 1;
+    p->dirty = 0;
+    p->present = 1;
+    return p;
+}
+
+void page_ref(page_t *p) {
+    if (p && p->present) {
+        p->refcount++;
+    }
+}
+
+void page_unref(page_t *p) {
+    if (p && p->present) {
+        if (p->refcount > 0) {
+            p->refcount--;
+        }
+        if (p->refcount == 0) {
+            if (p->sram_ppn != -1) {
+                frame_free(p->sram_ppn);
+                p->sram_ppn = -1;
+            }
+            if (p->backing_pa != 0) {
+                backing_free(p->backing_pa);
+                p->backing_pa = 0;
+            }
+            p->present = 0;
+        }
+    }
+}
+
+static int evict_one_frame(void) {
+    uint32_t out_backing_pa;
+    int victim_ppn = clock_evict(&out_backing_pa);
+    if (victim_ppn == -1) return -1;
+
+    page_t *victim_p = page_lookup(out_backing_pa);
+    if (victim_p) {
+        if (clock_is_dirty(victim_ppn)) {
+            page_msg_store(victim_p->backing_pa, victim_ppn);
+        }
+        victim_p->sram_ppn = -1;
+    }
+    return victim_ppn;
+}
+
+void page_resolve_fault(mm_t *mm, vma_t *vma, uint32_t vpn, uint32_t cause) {
+    int is_user = 1;
+    int is_store = (cause == 15);
+    
+    pte_t *pte = mapping_get_pte(mm, vpn, 1);
+    if (!pte) { printk("OOM PTE\r\n"); return; }
+    
+    page_t *p = NULL;
+    if (*pte & PTE_V) {
+        uint32_t backing_pa = *pte & ~0xFFF;
+        p = page_lookup(backing_pa);
+    }
+    
+    // Check for COW
+    if (p && is_store && !(*pte & PTE_W)) {
+        if (p->refcount > 1) {
+            uint32_t new_backing_pa = backing_alloc();
+            page_t *new_p = page_create(new_backing_pa);
+            if (!new_p) { printk("OOM COW page\r\n"); return; }
+            
+            new_p->sram_ppn = frame_alloc();
+            if (new_p->sram_ppn == -1) {
+                new_p->sram_ppn = evict_one_frame();
+            }
+            
+            if (p->sram_ppn == -1) {
+                p->sram_ppn = frame_alloc();
+                if (p->sram_ppn == -1) p->sram_ppn = evict_one_frame();
+                page_msg_load(p->backing_pa, p->sram_ppn);
+                clock_record_access(p->sram_ppn, p->backing_pa);
+            }
+            
+            uint32_t *src = (uint32_t*)(p->sram_ppn << 12);
+            uint32_t *dst = (uint32_t*)(new_p->sram_ppn << 12);
+            for (int i = 0; i < 1024; i++) dst[i] = src[i];
+            
+            page_unref(p);
+            p = new_p;
+            page_msg_store(p->backing_pa, p->sram_ppn);
+            clock_record_access(p->sram_ppn, p->backing_pa);
+            
+            mapping_map_page(mm, vpn, p->backing_pa, vma->prot, is_user);
+        }
+        *pte |= PTE_W;
+        if (p->sram_ppn != -1) {
+            clock_mark_dirty(p->sram_ppn);
+            uint32_t data0 = (vpn << 12) | ((is_user ? 1 : 0) << 11) | mm->asid;
+            page_msg_tlb_update(data0, p->sram_ppn);
+        }
+        return;
+    }
+    
+    if (!p) {
+        uint32_t new_backing_pa = backing_alloc();
+        if (!new_backing_pa) { printk("OOM backing\r\n"); return; }
+        
+        p = page_create(new_backing_pa);
+        if (!p) { printk("OOM page_t\r\n"); return; }
+        
+        p->sram_ppn = frame_alloc();
+        if (p->sram_ppn == -1) {
+            p->sram_ppn = evict_one_frame();
+            if (p->sram_ppn == -1) { printk("OOM eviction\r\n"); return; }
+        }
+        
+        page_msg_load(p->backing_pa, p->sram_ppn);
+        clock_record_access(p->sram_ppn, p->backing_pa);
+        
+        uint32_t *s_page = (uint32_t*)(p->sram_ppn << 12);
+        
+        if (!(vma->flags & MAP_ANONYMOUS) && vma->fd >= 0) {
+            file_t *f = fd_get(&current_proc->fdt, vma->fd);
+            if (f && f->vnode) {
+                uint32_t pos = vma->offset + ((vpn << 12) - vma->vaddr_start);
+                f->vnode->ops->read(f->vnode, (void*)s_page, 4096, &pos);
+            }
+        } else {
+            for (int i=0; i<1024; i++) s_page[i] = 0;
+        }
+        
+        if (is_store) clock_mark_dirty(p->sram_ppn);
+        
+        mapping_map_page(mm, vpn, p->backing_pa, vma->prot, is_user);
+        
+        uint32_t data0 = (vpn << 12) | ((is_user ? 1 : 0) << 11) | mm->asid;
+        page_msg_tlb_update(data0, p->sram_ppn);
+        
+    } else {
+        if (p->sram_ppn == -1) {
+            p->sram_ppn = frame_alloc();
+            if (p->sram_ppn == -1) {
+                p->sram_ppn = evict_one_frame();
+                if (p->sram_ppn == -1) { printk("OOM eviction\r\n"); return; }
+            }
+            page_msg_load(p->backing_pa, p->sram_ppn);
+        }
+        clock_record_access(p->sram_ppn, p->backing_pa);
+        if (is_store) clock_mark_dirty(p->sram_ppn);
+        
+        uint32_t data0 = (vpn << 12) | ((is_user ? 1 : 0) << 11) | mm->asid;
+        page_msg_tlb_update(data0, p->sram_ppn);
+    }
+}

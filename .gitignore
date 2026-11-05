@@ -1,0 +1,56 @@
+# build outputs
+build/
+obj_dir/
+**/build/
+**/BUILD/
+compiler/test/sim_build/
+*.o
+*.elf
+*.bin
+*.ll
+!compiler/llvm-project/llvm/test/CodeGen/DMCTP-experimental/*.ll
+
+__BIN__/
+__tmp__/
+
+# temporary files
+*.log
+*.tmp
+tmp/
+user/src/isp_pipe/processed/
+user/venv/
+
+# simulator
+verification/simulator/sim/__pycache__/
+verification/simulator/tools/__pycache__/
+
+# Verification
+verification/uvm/isa/test.S
+verification/uvm/isa/tests/random/test.S
+verification/uvm/isa/tests/random/test.o
+verification/uvm/isa/tests/random/boot_rom.elf
+
+#isp
+__pycache__/
+*.pyc
+
+#editors
+.vscode/
+
+#bin
+__BIN__/
+
+#external dependencies
+EDA/external/
+EDA/bin/
+EDA/emul/INSTALL/
+compiler/llvm-project/
+
+# generated regression output
+regressions/results/
+# compiler test outputs
+compiler/test/test.elf
+compiler/test/sim_build/
+compiler/test/dump.vcd
+compiler/test/results.xml
+compiler/test/build/

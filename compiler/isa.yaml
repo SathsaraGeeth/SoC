@@ -1,0 +1,466 @@
+meta:
+  xlen: 64
+  reg_count: 32
+  x0_hardwired_zero: true
+  inst_width: 32
+
+fields:
+  opcode: { bits: [6,  0]  }
+  rd:     { bits: [11, 7]  }
+  funct3: { bits: [14, 12] }
+  rs1:    { bits: [19, 15] }
+  rs2:    { bits: [24, 20] }
+  funct7: { bits: [31, 25] }
+  funct6: { bits: [31, 26] }
+
+formats:
+  R:
+    fields: [opcode, rd, funct3, rs1, rs2, funct7]
+  I:
+    fields: [opcode, rd, funct3, rs1]
+    imm: { bits: [31, 20], signed: true }
+  S:
+    fields: [opcode, funct3, rs1, rs2]
+    imm:
+      parts:
+        - { src: [11, 7],  dst: [4, 0] }
+        - { src: [31, 25], dst: [11, 5] }
+      signed: true
+  B:
+    fields: [opcode, funct3, rs1, rs2]
+    imm:
+      parts:
+        - { src: [11, 8],  dst: [4, 1]   }
+        - { src: [30, 25], dst: [10, 5]  }
+        - { src: [7, 7],   dst: [11, 11] }
+        - { src: [31, 31], dst: [12, 12] }
+      signed: true
+  U:
+    fields: [opcode, rd]
+    imm: { bits: [31, 12], shift: 12, signed: true }
+  J:
+    fields: [opcode, rd]
+    imm:
+      parts:
+        - { src: [30, 21], dst: [10, 1]  }
+        - { src: [20, 20], dst: [11, 11] }
+        - { src: [19, 12], dst: [19, 12] }
+        - { src: [31, 31], dst: [20, 20] }
+      signed: true
+  R4:
+    fields: [opcode, rd, funct3, rs1, rs2]
+    rs3: { bits: [31, 27] }
+    funct2: { bits: [26, 25] }
+
+opcodes:
+  LOAD:    0b0000011
+  STORE:   0b0100011
+  CONDST:  0b0101011
+  AMO:     0b0101111
+  FENCE:   0b0001111
+  BRANCH:  0b1100011
+  JUMP:    0b1101111
+  JUMPR:   0b1100111
+  AUIPC:   0b0010111
+  LUI:     0b0110111
+  IALU:    0b0010011
+  RALU:    0b0110011
+  IALUW:   0b0011011
+  RALUW:   0b0111011
+  SYSTEM:  0b1110011
+  FLOAD:   0b0000111
+  FSTORE:  0b0100111
+  FMADD:   0b1000011
+  FMSUB:   0b1000111
+  FALU:    0b1010011
+
+groups:
+  load_store:
+    LOAD:
+      opcode: LOAD
+      format: I
+      variants:
+        - { mnemonic: LOAD.i8,         funct3: 0b000 }
+        - { mnemonic: LOAD.i16,        funct3: 0b001 }
+        - { mnemonic: LOAD.i32,        funct3: 0b010 }
+        - { mnemonic: LOAD.i64,        funct3: 0b011 }
+        - { mnemonic: LOAD.u8,         funct3: 0b100 }
+        - { mnemonic: LOAD.u16,        funct3: 0b101 }
+        - { mnemonic: LOAD.u32,        funct3: 0b110 }
+
+    LOAD_RES:
+      opcode: AMO
+      format: R
+      variants:
+        - { mnemonic: LOAD.i32.res,       funct3: 0b010, funct5: 0b00010, aq_bit26: 0, rl_bit25: 0, rs2_fixed: 0b00000 }
+        - { mnemonic: LOAD.i32.res.aq,    funct3: 0b010, funct5: 0b00010, aq_bit26: 1, rl_bit25: 0, rs2_fixed: 0b00000 }
+        - { mnemonic: LOAD.i64.res,       funct3: 0b011, funct5: 0b00010, aq_bit26: 0, rl_bit25: 0, rs2_fixed: 0b00000 }
+        - { mnemonic: LOAD.i64.res.aq,    funct3: 0b011, funct5: 0b00010, aq_bit26: 1, rl_bit25: 0, rs2_fixed: 0b00000 }
+
+    LOAD_FP:
+      opcode: FLOAD
+      format: I
+      variants:
+        - { mnemonic: LOAD.f16,        funct3: 0b001 }
+        - { mnemonic: LOAD.bf16,       funct3: 0b010 }
+
+    STORE:
+      opcode: STORE
+      format: S
+      variants:
+        - { mnemonic: STORE.8,         funct3: 0b000 }
+        - { mnemonic: STORE.16,        funct3: 0b001 }
+        - { mnemonic: STORE.32,        funct3: 0b010 }
+        - { mnemonic: STORE.64,        funct3: 0b011 }
+
+    STORE_FP:
+      opcode: FSTORE
+      format: S
+      variants:
+        - { mnemonic: STORE.f16,       funct3: 0b001 }
+        - { mnemonic: STORE.bf16,      funct3: 0b010 }
+
+    lSTORE:
+      opcode: AMO
+      format: R
+      variants:
+        - { mnemonic: CONDSTORE.8,     funct3: 0b000, funct5: 0b00011, rl_bit25: 0 }
+        - { mnemonic: CONDSTORE.16,    funct3: 0b001, funct5: 0b00011, rl_bit25: 0 }
+        - { mnemonic: CONDSTORE.32,    funct3: 0b010, funct5: 0b00011, rl_bit25: 0 }
+        - { mnemonic: CONDSTORE.64,    funct3: 0b011, funct5: 0b00011, rl_bit25: 0 }
+        - { mnemonic: CONDSTORE.8.rl,  funct3: 0b000, funct5: 0b00011, rl_bit25: 1 }
+        - { mnemonic: CONDSTORE.16.rl, funct3: 0b001, funct5: 0b00011, rl_bit25: 1 }
+        - { mnemonic: CONDSTORE.32.rl, funct3: 0b010, funct5: 0b00011, rl_bit25: 1 }
+        - { mnemonic: CONDSTORE.64.rl, funct3: 0b011, funct5: 0b00011, rl_bit25: 1 }
+
+  fence:
+    FENCE:
+      opcode: FENCE
+      format: I
+      variants:
+        - { mnemonic: FENCE.i,         funct3: 0b001 }
+        - { mnemonic: FENCE.d.ls.ls,   funct3: 0b000, imm_bits: 0b00110011 }
+        - { mnemonic: FENCE.d.l.l,     funct3: 0b000, imm_bits: 0b00100010 }
+        - { mnemonic: FENCE.d.s.s,     funct3: 0b000, imm_bits: 0b00010001 }
+        - { mnemonic: FENCE.d.l.s,     funct3: 0b000, imm_bits: 0b00010010 }
+        - { mnemonic: FENCE.d.s.l,     funct3: 0b000, imm_bits: 0b00100001 }
+
+  branch:
+    BC:
+      opcode: BRANCH
+      format: B
+      variants:
+        - { mnemonic: BC.EQ,  funct3: 0b000 }
+        - { mnemonic: BC.NE,  funct3: 0b001 }
+        - { mnemonic: BC.LT,  funct3: 0b100 }
+        - { mnemonic: BC.GE,  funct3: 0b101 }
+        - { mnemonic: BC.LTU, funct3: 0b110 }
+        - { mnemonic: BC.GEU, funct3: 0b111 }
+
+    JUMP_REL_DIR:
+      opcode: JUMP
+      format: J
+      mnemonic: JUMP.REL.DIR
+      pseudos: [JAL, CALL, AUIPC_PAIR]
+
+    JUMP_ABS_DIR:
+      opcode: AUIPC
+      format: U
+      mnemonic: AUIPC
+
+    JUMP_ABS:
+      opcode: JUMPR
+      format: I
+      funct3: 0b000
+      mnemonic: JUMP.ABS
+      pseudos: [JALR, RET]
+
+  integer_alu:
+
+    ADD:
+      variants:
+        - { mnemonic: ADD.i64,   opcode: RALU, format: R,  funct3: 0b000, funct7: 0b0000000 }
+        - { mnemonic: ADDI.i64,  opcode: IALU, format: I,  funct3: 0b000 }
+        - { mnemonic: ADD.i32,   opcode: RALUW, format: R, funct3: 0b000, funct7: 0b0000000 }
+        - { mnemonic: ADDI.i32,  opcode: IALUW, format: I, funct3: 0b000 }
+        - { mnemonic: LUI,       opcode: LUI, format: U }
+
+    SUB:
+      variants:
+        - { mnemonic: SUB.i64,   opcode: RALU, format: R, funct3: 0b000,  funct7: 0b0100000 }
+        - { mnemonic: SUB.i32,   opcode: RALUW, format: R, funct3: 0b000, funct7: 0b0100000 }
+
+    MUL:
+      variants:
+        - { mnemonic: MUL.64.lo,   opcode: RALU, format: R, funct3: 0b000, funct7: 0b0000001 }
+        - { mnemonic: MUL.i64.hi,  opcode: RALU,  format: R, funct3: 0b001, funct7: 0b0000001 }
+        - { mnemonic: MUL.iu64.hi, opcode: RALU,  format: R, funct3: 0b010, funct7: 0b0000001 }
+        - { mnemonic: MUL.u64.hi,  opcode: RALU,  format: R, funct3: 0b011, funct7: 0b0000001 }
+        - { mnemonic: MUL.i32.lo,  opcode: RALUW, format: R, funct3: 0b000, funct7: 0b0000001 }
+
+    # DIV:
+    #   variants:
+    #     - { mnemonic: DIV.i32,   opcode: RALU, format: R, funct3: 0b100, funct7: 0b0000001 }
+    #     - { mnemonic: DIV.u32,   opcode: RALU, format: R, funct3: 0b101, funct7: 0b0000001 }
+
+    # REM:
+    #   variants:
+    #     - { mnemonic: REM.i32,   opcode: RALU, format: R, funct3: 0b110, funct7: 0b0000001 }
+    #     - { mnemonic: REM.u32,   opcode: RALU, format: R, funct3: 0b111, funct7: 0b0000001 }
+
+    SHIFT_LEFT:
+      variants:
+        - { mnemonic: SL.i64,    opcode: RALU, format: R,  funct3: 0b001, funct7: 0b0000000 }
+        - { mnemonic: SLI.i64,   opcode: IALU, format: I,  funct6: 0b000000, funct3: 0b001 }
+        - { mnemonic: SL.i32,    opcode: RALUW, format: R, funct3: 0b001, funct7: 0b0000000 }
+        - { mnemonic: SLI.i32,   opcode: IALUW, format: I, funct7: 0b0000000, funct3: 0b001 }
+
+    SHIFT_RIGHT:
+      variants:
+        - { mnemonic: SR.u64,    opcode: RALU, format: R,  funct3: 0b101, funct7: 0b0000000 }
+        - { mnemonic: SR.i64,    opcode: RALU, format: R,  funct3: 0b101, funct7: 0b0100000 }
+        - { mnemonic: SRI.u64,   opcode: IALU, format: I,  funct3: 0b101, funct6: 0b000000 }
+        - { mnemonic: SRI.i64,   opcode: IALU, format: I,  funct3: 0b101, funct6: 0b010000 }
+        - { mnemonic: SR.u32,    opcode: RALUW, format: R, funct3: 0b101, funct7: 0b0000000 }
+        - { mnemonic: SR.i32,    opcode: RALUW, format: R, funct3: 0b101, funct7: 0b0100000 }
+        - { mnemonic: SRI.u32,   opcode: IALUW, format: I, funct7: 0b0000000, funct3: 0b101 }
+        - { mnemonic: SRI.i32,   opcode: IALUW, format: I, funct7: 0b0100000, funct3: 0b101 }
+
+    AND:
+      variants:
+        - { mnemonic: AND.64,   opcode: RALU, format: R, funct3: 0b111, funct7: 0b0000000 }
+        - { mnemonic: ANDI.64,  opcode: IALU, format: I, funct3: 0b111 }
+
+    OR:
+      variants:
+        - { mnemonic: OR.64,    opcode: RALU, format: R, funct3: 0b110, funct7: 0b0000000 }
+        - { mnemonic: ORI.64,   opcode: IALU, format: I, funct3: 0b110 }
+
+    XOR:
+      variants:
+        - { mnemonic: XOR.64,   opcode: RALU, format: R, funct3: 0b100, funct7: 0b0000000 }
+        - { mnemonic: XORI.64,  opcode: IALU, format: I, funct3: 0b100 }
+
+    SLT:
+      variants:
+        - { mnemonic: SLT.i64,   opcode: RALU, format: R, funct3: 0b010, funct7: 0b0000000 }
+        - { mnemonic: SLT.u64,   opcode: RALU, format: R, funct3: 0b011, funct7: 0b0000000 }
+        - { mnemonic: SLTI.i64,  opcode: IALU, format: I, funct3: 0b010 }
+        - { mnemonic: SLTI.u64,  opcode: IALU, format: I, funct3: 0b011 }
+
+
+  system:
+    CSR:
+      opcode: SYSTEM
+      format: I
+      variants:
+        - { mnemonic: CSRRW,  funct3: 0b001 }
+        - { mnemonic: CSRRWI, funct3: 0b101 }
+        - { mnemonic: CSRRS,  funct3: 0b010 }
+        - { mnemonic: CSRRC,  funct3: 0b011 }
+        - { mnemonic: CSRRSI, funct3: 0b110 }
+        - { mnemonic: CSRRCI, funct3: 0b111 }
+
+    ECALL:
+      opcode: SYSTEM
+      format: I
+      funct3: 0b000
+      mnemonic: ECALL
+      rd_fixed:  0b00000
+      rs1_fixed: 0b00000
+      imm_fixed: 0b000000000000
+
+    SRET:
+      opcode: SYSTEM
+      format: I
+      funct3: 0b000
+      mnemonic: SRET
+      rd_fixed:  0b00000
+      rs1_fixed: 0b00000
+      imm_fixed: 0b000100000010
+
+    MRET:
+      opcode: SYSTEM
+      format: I
+      funct3: 0b000
+      mnemonic: MRET
+      rd_fixed:  0b00000
+      rs1_fixed: 0b00000
+      imm_fixed: 0b001100000010
+
+    WFI:
+      opcode: SYSTEM
+      format: I
+      funct3: 0b000
+      mnemonic: WFI
+      rd_fixed:  0b00000
+      rs1_fixed: 0b00000
+      imm_fixed: 0b000100000101
+
+op_enums:
+
+  alu_op:
+    width: 5
+    values:
+      - ALU_ADD
+      - ALU_SUB
+      - ALU_SLL
+      - ALU_SLT
+      - ALU_SLTU
+      - ALU_XOR
+      - ALU_SRL
+      - ALU_SRA
+      - ALU_OR
+      - ALU_AND
+      - ALU_MUL
+      - ALU_MULH
+      - ALU_MULHSU
+      - ALU_MULHU
+
+  fpu_op:
+    width: 5
+    values:
+      - FPU_FADD
+      - FPU_FSUB
+      - FPU_FMUL
+      - FPU_FDIV
+      - FPU_FSQRT
+      - FPU_FMIN
+      - FPU_FMAX
+      - FPU_FCMP_EQ
+      - FPU_FCMP_LT
+      - FPU_FCMP_LE
+      - FPU_CVT_F2I
+      - FPU_CVT_F2U
+      - FPU_CVT_I2F
+      - FPU_CVT_U2F
+      - FPU_CVT_F2F16
+      - FPU_CVT_F16_F
+      - FPU_CVT_F2BF16
+      - FPU_CVT_BF16_F
+      - FPU_CVT_F2I8
+      - FPU_CVT_F2U8
+      - FPU_CVT_I8_F
+      - FPU_CVT_U8_F
+
+  ls_op:
+    width: 5
+    values:
+      - LS_LOAD_I8
+      - LS_LOAD_I16
+      - LS_LOAD_I32
+      - LS_LOAD_I64
+      - LS_LOAD_U8
+      - LS_LOAD_U16
+      - LS_LOAD_U32
+      - LS_LOAD_F16
+      - LS_LOAD_BF16
+      - LS_STORE_8
+      - LS_STORE_16
+      - LS_STORE_32
+      - LS_STORE_64
+      - LS_STORE_F16
+      - LS_STORE_BF16
+      - LS_CSTORE_8
+      - LS_CSTORE_16
+      - LS_CSTORE_32
+      - LS_CSTORE_64
+      - LS_CSTORE_8_RL
+      - LS_CSTORE_16_RL
+      - LS_CSTORE_32_RL
+      - LS_CSTORE_64_RL
+
+csrs:
+  - { addr: 0x300, name: mstatus }
+  - { addr: 0x304, name: mie }
+  - { addr: 0x344, name: mip }
+  - { addr: 0x341, name: mepc }
+  - { addr: 0x342, name: mcause }
+  - { addr: 0x305, name: mtvec }
+  - { addr: 0x340, name: mscratch }
+  - { addr: 0x003, name: fcsr }
+  - { addr: 0x7C1, name: thread_id }
+  - { addr: 0x7C3, name: virtual_thrd_id }
+  - { addr: 0x7C4, name: page_msg_arg0 }
+  - { addr: 0x7C5, name: page_msg_arg1 }
+  - { addr: 0x7C6, name: page_msg_cmd }
+  - { addr: 0x100, name: sstatus }
+  - { addr: 0x104, name: sie }
+  - { addr: 0x144, name: sip }
+  - { addr: 0x141, name: sepc }
+  - { addr: 0x142, name: scause }
+  - { addr: 0x143, name: stval }
+  - { addr: 0x105, name: stvec }
+  - { addr: 0x140, name: sscratch }
+  - { addr: 0x302, name: medeleg }
+  - { addr: 0x303, name: mideleg }
+
+mtvec_modes:
+  width: 2
+  values:
+    direct: 0b00
+    vectored: 0b01
+
+trap_causes:
+  width: 6
+  values:
+    inst_addr_misaligned: 0
+    inst_access_fault: 1
+    illegal_instr: 2
+    breakpoint: 3
+    load_addr_misaligned: 4
+    load_access_fault: 5
+    store_addr_misaligned: 6
+    store_access_fault: 7
+    ecall_u: 8
+    ecall_s: 9
+    ecall_m: 11
+    inst_page_fault: 12
+    load_page_fault: 13
+    store_page_fault: 15
+    double_trap: 16
+    software_check: 18
+    hardware_error: 19
+    inst_guest_page_fault: 20
+    load_guest_page_fault: 21
+    virtual_instruction: 22
+    store_guest_page_fault: 23
+
+interrupt_causes:
+  supervisor_software: 1
+  virtual_supervisor_software: 2
+  machine_software: 3
+  supervisor_timer: 5
+  virtual_supervisor_timer: 6
+  machine_timer: 7
+  supervisor_external: 9
+  virtual_supervisor_external: 10
+  machine_external: 11
+  supervisor_guest_external: 12
+  counter_overflow: 13
+
+csr_slots:
+  - mstatus
+  - mie
+  - mip
+  - mepc
+  - mcause
+  - mtvec
+  - mscratch
+  - fcsr
+  - thread_id
+  - virtual_thrd_id
+  - satp
+  - page_msg_arg0
+  - page_msg_arg1
+  - page_msg_cmd
+  - sstatus
+  - sie
+  - sip
+  - sepc
+  - scause
+  - stval
+  - stvec
+  - sscratch
+  - medeleg
+  - mideleg

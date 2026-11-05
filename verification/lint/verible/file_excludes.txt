@@ -1,0 +1,7 @@
+# Files/directories to exclude from Verible lint
+# Each line is a glob pattern
+# verible-verilog-lint does not natively support this from a file,
+# but the run.sh script can use this to filter files
+
+# Example:
+# rtl/vendor/*

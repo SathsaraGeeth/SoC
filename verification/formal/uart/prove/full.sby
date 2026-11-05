@@ -1,0 +1,26 @@
+# UART safety proofs.
+
+[options]
+mode prove
+depth 24
+
+[engines]
+smtbmc boolector
+
+[script]
+plugin -i slang
+read_slang -D FORMAL --top uart_formal uart.sv uart_env.sv
+prep -top uart_formal
+
+[files]
+../../../rtl/uart/uart.sv
+env/uart_env.sv
+env/uart_assumptions.sv
+env/uart_coverpoints.sv
+properties/uart_reset.sv
+properties/uart_fifo.sv
+properties/uart_status.sv
+properties/uart_tx.sv
+properties/uart_rx.sv
+properties/uart_protocol.sv
+properties/uart_baud.sv

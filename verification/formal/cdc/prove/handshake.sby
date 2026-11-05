@@ -1,0 +1,16 @@
+[options]
+mode prove
+depth 32
+multiclock on
+
+[engines]
+smtbmc boolector
+
+[script]
+read -formal cdc_bit_sync.sv cdc_handshake.sv cdc_handshake_formal.sv
+prep -top cdc_handshake_formal
+
+[files]
+../../../rtl/common/cdc/cdc_bit_sync.sv
+../../../rtl/common/cdc/cdc_handshake.sv
+env/cdc_handshake_formal.sv

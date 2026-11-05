@@ -1,0 +1,14 @@
+# UART block Yosys script
+read_verilog -formal -sv \
+    rtl/core/core_pkg.sv \
+    rtl/common/fifo/circular_buffer.sv \
+    rtl/uart/uart_if.sv \
+    rtl/uart/uart_mmio.sv \
+    rtl/uart/uart.sv
+
+hierarchy -check -top uart
+
+proc
+opt_clean
+check -assert
+stat

@@ -1,0 +1,35 @@
+# Central Waiver Register
+# All lint waivers should be documented here with a reason and owner.
+
+waivers:
+  - id: LINT-001
+    tool: verilator
+    rule: UNUSEDPARAM
+    file: rtl/pkg/*.sv
+    reason: Shared packages have parameters used by some configurations but not all.
+    owner: rtl
+    status: active
+
+  - id: LINT-002
+    tool: verilator
+    rule: UNUSED
+    file: rtl/pkg/*.sv
+    reason: Package items may be unused in certain configurations.
+    owner: rtl
+    status: active
+
+  - id: LINT-003
+    tool: verilator
+    rule: UNUSEDPARAM
+    file: rtl/core/*.sv
+    reason: Core parameters are shared across multiple pipeline configurations.
+    owner: rtl-core
+    status: active
+
+  - id: LINT-004
+    tool: verilator
+    rule: UNUSED
+    file: rtl/core/*.sv
+    reason: Some core signals are used only in synthesis, not lint.
+    owner: rtl-core
+    status: active

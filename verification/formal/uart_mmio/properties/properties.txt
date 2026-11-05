@@ -1,0 +1,18 @@
+Proofs
+------
+
+P1. Reset restores every MMIO register and request/response state.
+P2. Request ready exactly reflects request and response capacity.
+P3. Accepted requests are captured with their payload and thread tag.
+P4. Completed requests create tagged, non-SC responses.
+P5. Backpressured responses remain valid and stable.
+P6. User-mode writes cannot change privileged control registers.
+P7. Privileged writes obey byte masks and the IE implemented-bit mask.
+
+Cover
+-----
+
+C1. Control reads and writes are accepted.
+C2. A response is backpressured.
+C3. TX enable is programmed.
+

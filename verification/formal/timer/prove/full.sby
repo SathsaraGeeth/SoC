@@ -1,0 +1,23 @@
+# Timer safety proof.
+
+[options]
+mode prove
+depth 24
+
+[engines]
+smtbmc boolector
+
+[script]
+plugin -i slang
+read_slang -D FORMAL --top timer_formal timer.sv timer_env.sv
+prep -top timer_formal
+
+[files]
+../../../rtl/timer/timer.sv
+env/timer_env.sv
+env/timer_assumptions.sv
+env/timer_coverpoints.sv
+properties/timer_reset.sv
+properties/timer_counter.sv
+properties/timer_protocol.sv
+

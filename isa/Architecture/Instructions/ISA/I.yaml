@@ -1,0 +1,599 @@
+# I.yaml
+#
+# Copyright (C) 2026 Sathsara Geeth
+#
+# Version 1.0
+#
+# Version History
+#
+# Version | Description
+# --------+-----------------------------------------
+# 1.0     | Initial implementation
+#
+# Comments:
+# 1.
+
+module: I
+requires: []
+groups:
+  i_instructions:
+    LOAD_i8:
+      opcode: LOAD
+      format: I
+      mnemonic: LOAD.i8
+      funct3: 0
+      selection:
+        kind: extload
+        node: sextloadi8
+    LOAD_i16:
+      opcode: LOAD
+      format: I
+      mnemonic: LOAD.i16
+      funct3: 1
+      selection:
+        kind: extload
+        node: sextloadi16
+    LOAD_i32:
+      opcode: LOAD
+      format: I
+      mnemonic: LOAD.i32
+      funct3: 2
+      selection:
+        kind: load32
+    LOAD_i64:
+      opcode: LOAD
+      format: I
+      mnemonic: LOAD.i64
+      funct3: 3
+      selection:
+        kind: load
+    LOAD_u8:
+      opcode: LOAD
+      format: I
+      mnemonic: LOAD.u8
+      funct3: 4
+      selection:
+        kind: extload
+        node: zextloadi8
+    LOAD_u16:
+      opcode: LOAD
+      format: I
+      mnemonic: LOAD.u16
+      funct3: 5
+      selection:
+        kind: extload
+        node: zextloadi16
+    LOAD_u32:
+      opcode: LOAD
+      format: I
+      mnemonic: LOAD.u32
+      funct3: 6
+      selection:
+        kind: extload
+        node: zextloadi32
+    STORE_8:
+      opcode: STORE
+      format: S
+      mnemonic: STORE.8
+      funct3: 0
+      selection:
+        kind: truncstore
+        node: truncstorei8
+    STORE_16:
+      opcode: STORE
+      format: S
+      mnemonic: STORE.16
+      funct3: 1
+      selection:
+        kind: truncstore
+        node: truncstorei16
+    STORE_32:
+      opcode: STORE
+      format: S
+      mnemonic: STORE.32
+      funct3: 2
+      selection:
+        kind: store32
+    STORE_64:
+      opcode: STORE
+      format: S
+      mnemonic: STORE.64
+      funct3: 3
+      selection:
+        kind: store
+    BC_EQ:
+      opcode: BRANCH
+      format: B
+      mnemonic: BC.EQ
+      funct3: 0
+      selection:
+        kind: branch
+        condition: SETEQ
+    BC_NE:
+      opcode: BRANCH
+      format: B
+      mnemonic: BC.NE
+      funct3: 1
+      selection:
+        kind: branch
+        condition: SETNE
+    BC_LT:
+      opcode: BRANCH
+      format: B
+      mnemonic: BC.LT
+      funct3: 4
+      selection:
+        kind: branch
+        condition: SETLT
+    BC_GE:
+      opcode: BRANCH
+      format: B
+      mnemonic: BC.GE
+      funct3: 5
+      selection:
+        kind: branch
+        condition: SETGE
+    BC_LTU:
+      opcode: BRANCH
+      format: B
+      mnemonic: BC.LTU
+      funct3: 6
+      selection:
+        kind: branch
+        condition: SETULT
+    BC_GEU:
+      opcode: BRANCH
+      format: B
+      mnemonic: BC.GEU
+      funct3: 7
+      selection:
+        kind: branch
+        condition: SETUGE
+    JUMP_REL_DIR:
+      opcode: JUMP
+      format: J
+      mnemonic: JUMP.REL.DIR
+      rd_fixed: 0
+      pseudos:
+      - JAL
+      - CALL
+      - AUIPC_PAIR
+      selection:
+        kind: jump
+    CALL:
+      opcode: JUMP
+      format: J
+      mnemonic: CALL
+      rd_fixed: 1
+      semantic:
+        implicit_defs: [R1]
+      selection:
+        kind: custom
+        handler: LowerCall
+    CALL_INDIRECT:
+      opcode: JUMPR
+      format: I
+      funct3: 0
+      mnemonic: CALL.INDIRECT
+      rd_fixed: 1
+      imm_fixed: 0
+      semantic:
+        implicit_defs: [R1]
+      selection:
+        kind: custom
+        handler: LowerCall
+    TAIL:
+      opcode: JUMP
+      format: J
+      mnemonic: TAIL
+      rd_fixed: 0
+      selection:
+        kind: custom
+        handler: LowerCall
+    TAIL_INDIRECT:
+      opcode: JUMPR
+      format: I
+      funct3: 0
+      mnemonic: TAIL.INDIRECT
+      rd_fixed: 0
+      imm_fixed: 0
+      selection:
+        kind: custom
+        handler: LowerCall
+    AUIPC:
+      opcode: AUIPC
+      format: U
+      mnemonic: AUIPC
+      selection:
+        kind: custom
+        handler: LowerAddress
+    JUMP_ABS:
+      opcode: JUMPR
+      format: I
+      funct3: 0
+      mnemonic: JUMP.ABS
+      pseudos:
+      - JALR
+      - RET
+      selection:
+        kind: custom
+        handler: LowerCallOrJump
+    RET:
+      opcode: JUMPR
+      format: I
+      funct3: 0
+      mnemonic: RET
+      rd_fixed: 0
+      rs1_fixed: 1
+      imm_fixed: 0
+      selection:
+        kind: custom
+        handler: LowerReturn
+    ADD_i64:
+      mnemonic: ADD.i64
+      opcode: RALU
+      format: R
+      funct3: 0
+      funct7: 0
+      selection:
+        kind: generated
+    ADDI_i64:
+      mnemonic: ADDI.i64
+      opcode: IALU
+      format: I
+      funct3: 0
+      selection:
+        kind: generated
+    ADD_i32:
+      mnemonic: ADD.i32
+      opcode: RALUW
+      format: R
+      funct3: 0
+      funct7: 0
+      selection:
+        kind: generated
+    ADDI_i32:
+      mnemonic: ADDI.i32
+      opcode: IALUW
+      format: I
+      funct3: 0
+      selection:
+        kind: custom
+        handler: LowerWordImmediate
+    LUI:
+      mnemonic: LUI
+      opcode: LUI
+      format: U
+      selection:
+        kind: custom
+        handler: LowerAddress
+    SUB_i64:
+      mnemonic: SUB.i64
+      opcode: RALU
+      format: R
+      funct3: 0
+      funct7: 32
+      selection:
+        kind: generated
+    SUB_i32:
+      mnemonic: SUB.i32
+      opcode: RALUW
+      format: R
+      funct3: 0
+      funct7: 32
+      selection:
+        kind: generated
+    SL_i64:
+      mnemonic: SL.i64
+      opcode: RALU
+      format: R
+      funct3: 1
+      funct7: 0
+      selection:
+        kind: generated
+    SLI_i64:
+      mnemonic: SLI.i64
+      opcode: IALU
+      format: I
+      funct6: 0
+      funct3: 1
+      selection:
+        kind: generated
+    SL_i32:
+      mnemonic: SL.i32
+      opcode: RALUW
+      format: R
+      funct3: 1
+      funct7: 0
+      selection:
+        kind: generated
+    SLI_i32:
+      mnemonic: SLI.i32
+      opcode: IALUW
+      format: I
+      funct7: 0
+      funct3: 1
+      selection:
+        kind: custom
+        handler: LowerWordImmediate
+    SR_u64:
+      mnemonic: SR.u64
+      opcode: RALU
+      format: R
+      funct3: 5
+      funct7: 0
+      selection:
+        kind: generated
+    SR_i64:
+      mnemonic: SR.i64
+      opcode: RALU
+      format: R
+      funct3: 5
+      funct7: 32
+      selection:
+        kind: generated
+    SRI_u64:
+      mnemonic: SRI.u64
+      opcode: IALU
+      format: I
+      funct3: 5
+      funct6: 0
+      selection:
+        kind: generated
+    SRI_i64:
+      mnemonic: SRI.i64
+      opcode: IALU
+      format: I
+      funct3: 5
+      funct6: 16
+      selection:
+        kind: generated
+    SR_u32:
+      mnemonic: SR.u32
+      opcode: RALUW
+      format: R
+      funct3: 5
+      funct7: 0
+      selection:
+        kind: generated
+    SR_i32:
+      mnemonic: SR.i32
+      opcode: RALUW
+      format: R
+      funct3: 5
+      funct7: 32
+      selection:
+        kind: generated
+    SRI_u32:
+      mnemonic: SRI.u32
+      opcode: IALUW
+      format: I
+      funct7: 0
+      funct3: 5
+      selection:
+        kind: custom
+        handler: LowerWordImmediate
+    SRI_i32:
+      mnemonic: SRI.i32
+      opcode: IALUW
+      format: I
+      funct7: 32
+      funct3: 5
+      selection:
+        kind: custom
+        handler: LowerWordImmediate
+    AND_64:
+      mnemonic: AND.64
+      opcode: RALU
+      format: R
+      funct3: 7
+      funct7: 0
+      selection:
+        kind: generated
+    ANDI_64:
+      mnemonic: ANDI.64
+      opcode: IALU
+      format: I
+      funct3: 7
+      selection:
+        kind: generated
+    OR_64:
+      mnemonic: OR.64
+      opcode: RALU
+      format: R
+      funct3: 6
+      funct7: 0
+      selection:
+        kind: generated
+    ORI_64:
+      mnemonic: ORI.64
+      opcode: IALU
+      format: I
+      funct3: 6
+      selection:
+        kind: generated
+    XOR_64:
+      mnemonic: XOR.64
+      opcode: RALU
+      format: R
+      funct3: 4
+      funct7: 0
+      selection:
+        kind: generated
+    XORI_64:
+      mnemonic: XORI.64
+      opcode: IALU
+      format: I
+      funct3: 4
+      selection:
+        kind: generated
+    SLT_i64:
+      mnemonic: SLT.i64
+      opcode: RALU
+      format: R
+      funct3: 2
+      funct7: 0
+      selection:
+        kind: generated
+    SLT_u64:
+      mnemonic: SLT.u64
+      opcode: RALU
+      format: R
+      funct3: 3
+      funct7: 0
+      selection:
+        kind: generated
+    SLTI_i64:
+      mnemonic: SLTI.i64
+      opcode: IALU
+      format: I
+      funct3: 2
+      selection:
+        kind: generated
+    SLTI_u64:
+      mnemonic: SLTI.u64
+      opcode: IALU
+      format: I
+      funct3: 3
+      selection:
+        kind: generated
+semantics:
+  ADD.i64:
+    operation: add
+    type: i64
+    signedness: indifferent
+  ADDI.i64:
+    operation: add_imm
+    type: i64
+  ADD.i32:
+    operation: add
+    type: i32
+  ADDI.i32:
+    operation: add_imm
+    type: i32
+  SUB.i64:
+    operation: sub
+    type: i64
+  SUB.i32:
+    operation: sub
+    type: i32
+  AND.64:
+    operation: and
+    type: i64
+  ANDI.64:
+    operation: and_imm
+    type: i64
+  OR.64:
+    operation: or
+    type: i64
+  ORI.64:
+    operation: or_imm
+    type: i64
+  XOR.64:
+    operation: xor
+    type: i64
+  XORI.64:
+    operation: xor_imm
+    type: i64
+  SL.i64:
+    operation: shl
+    type: i64
+    signedness: indifferent
+  SLI.i64:
+    operation: shl_imm
+    type: i64
+    signedness: indifferent
+  SL.i32:
+    operation: shl
+    type: i32
+    signedness: indifferent
+  SLI.i32:
+    operation: shl_imm
+    type: i32
+    signedness: indifferent
+  SR.i64:
+    operation: sra
+    type: i64
+    signedness: signed
+  SRI.i64:
+    operation: sra_imm
+    type: i64
+    signedness: signed
+  SR.u64:
+    operation: srl
+    type: i64
+    signedness: unsigned
+  SRI.u64:
+    operation: srl_imm
+    type: i64
+    signedness: unsigned
+  SR.i32:
+    operation: sra
+    type: i32
+    signedness: signed
+  SRI.i32:
+    operation: sra_imm
+    type: i32
+    signedness: signed
+  SR.u32:
+    operation: srl
+    type: i32
+    signedness: unsigned
+  SRI.u32:
+    operation: srl_imm
+    type: i32
+    signedness: unsigned
+  SLT.i64:
+    operation: setcc
+    predicate: setlt
+    type: i64
+    signedness: signed
+  SLT.u64:
+    operation: setcc
+    predicate: setult
+    type: i64
+    signedness: unsigned
+  SLTI.i64:
+    operation: setcc_imm
+    predicate: setlt
+    type: i64
+    signedness: signed
+  SLTI.u64:
+    operation: setcc_imm
+    predicate: setult
+    type: i64
+    signedness: unsigned
+  LOAD.i8:
+    operation: load
+    type: i8
+  LOAD.i16:
+    operation: load
+    type: i16
+  LOAD.i32:
+    operation: load
+    type: i32
+  LOAD.i64:
+    operation: load
+    type: i64
+  STORE.8:
+    operation: store
+    type: i8
+  STORE.16:
+    operation: store
+    type: i16
+  STORE.32:
+    operation: store
+    type: i32
+  STORE.64:
+    operation: store
+    type: i64
+  RET:
+    operation: return
+    implicit_uses:
+    - R1
+  TAIL:
+    operation: tail_call
+    decode: false
+  TAIL.INDIRECT:
+    operation: tail_call
+    decode: false

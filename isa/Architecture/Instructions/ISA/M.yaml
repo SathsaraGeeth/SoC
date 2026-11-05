@@ -1,0 +1,98 @@
+# M.yaml
+#
+# Copyright (C) 2026 Sathsara Geeth
+#
+# Version 1.0
+#
+# Version History
+#
+# Version | Description
+# --------+-----------------------------------------
+# 1.0     | Initial implementation
+#
+# Comments:
+# 1.
+
+module: M
+requires:
+- I
+groups:
+  m_instructions:
+    MUL_64_lo:
+      mnemonic: MUL.64.lo
+      opcode: RALU
+      format: R
+      funct3: 0
+      funct7: 1
+      selection:
+        kind: generated
+    MUL_ii64_hi:
+      mnemonic: MUL.ii64.hi
+      opcode: RALU
+      format: R
+      funct3: 1
+      funct7: 1
+      selection:
+        kind: generated
+    MUL_iu64_hi:
+      mnemonic: MUL.iu64.hi
+      opcode: RALU
+      format: R
+      funct3: 2
+      funct7: 1
+      selection:
+        kind: custom
+        handler: LowerMULHSU
+    MUL_uu64_hi:
+      mnemonic: MUL.uu64.hi
+      opcode: RALU
+      format: R
+      funct3: 3
+      funct7: 1
+      selection:
+        kind: generated
+    MUL_i32_lo:
+      mnemonic: MUL.i32.lo
+      opcode: RALUW
+      format: R
+      funct3: 0
+      funct7: 1
+      selection:
+        kind: generated
+    MUL_uu32_hi:
+      mnemonic: MUL.uu32.hi
+      opcode: RALUW
+      format: R
+      funct3: 3
+      funct7: 1
+      selection:
+        kind: generated
+semantics:
+  MUL.64.lo:
+    operation: mul
+    type: i64
+    signedness: indifferent
+  MUL.ii64.hi:
+    operation: mulhs
+    type: i64
+    lhs: signed
+    rhs: signed
+  MUL.iu64.hi:
+    operation: mulhsu
+    type: i64
+    lhs: signed
+    rhs: unsigned
+  MUL.uu64.hi:
+    operation: mulhu
+    type: i64
+    lhs: unsigned
+    rhs: unsigned
+  MUL.i32.lo:
+    operation: mul
+    type: i32
+    signedness: indifferent
+  MUL.uu32.hi:
+    operation: mulhu
+    type: i32
+    lhs: unsigned
+    rhs: unsigned

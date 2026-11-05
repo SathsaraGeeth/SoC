@@ -1,0 +1,35 @@
+/*
+ * kernel/sync/barrier/barrier.h
+ *
+ * Copyright (C) 2026 Sathsara Geeth
+ *
+ */
+
+/*
+ * Version 1.0
+ *
+ * Version History
+ *
+ * Version | Description
+ * --------+-----------------------------------------
+ * 1.0     | Initial implementation
+ */
+
+/*
+ * Comments:
+ * 1. both smp and non smp versions are equivalent as 
+ *    memory is weakly ordered
+ */
+
+#ifndef BARRIER_H
+#define BARRIER_H
+
+void mb(void);
+void rmb(void);
+void wmb(void);
+
+void smp_mb(void);
+void smp_rmb(void);
+void smp_wmb(void);
+
+#endif /* BARRIER_H */

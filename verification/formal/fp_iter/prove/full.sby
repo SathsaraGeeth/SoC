@@ -1,0 +1,21 @@
+# FP iteration-controller safety proof.
+[options]
+mode prove
+depth 8
+[engines]
+smtbmc boolector
+[script]
+plugin -i slang
+read_slang -D FORMAL --top fp_iter_formal isa_pkg.sv fpu_pkg.sv fpu_functions_pkg.sv fpu_iter.sv fp_iter_env.sv
+prep -top fp_iter_formal
+[files]
+../../../rtl/isa/isa_pkg.sv
+../../../rtl/core/fpu/fpu_pkg.sv
+../../../rtl/core/fpu/fpu_functions_pkg.sv
+../../../rtl/core/fpu/fpu_iter.sv
+env/fp_iter_env.sv
+env/fp_iter_assumptions.sv
+env/fp_iter_coverpoints.sv
+properties/fp_iter_reset.sv
+properties/fp_iter_routing.sv
+properties/fp_iter_special.sv

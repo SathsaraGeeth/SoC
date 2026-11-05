@@ -1,0 +1,1 @@
+-f verification/cdc/filelists/soc.f

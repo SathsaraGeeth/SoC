@@ -1,0 +1,459 @@
+/*
+ * Depreciated use multi_soc.sv using single set on the thruth. this is no longer maintained.
+ * Depreciated and replaced by multi_soc.sv. This file is kept for reference and will be removed in the future.
+ * Still the --single mode and uvm_depend on this, after migrate them into the multi_soc.sv, this file will be removed.
+ */
+
+`timescale 1ns/1ps
+`default_nettype none
+
+import core_pkg::*;
+import memory_pkg::*;
+import topology_pkg::*;
+import isa_pkg::*;
+import sys_cnfg_pkg::*;
+
+module soc (
+    input  logic i_clk,
+    input  logic i_rst_n,
+    input  logic i_uart_rx,
+    input  logic i_host_console_pending,
+    output logic o_uart_tx,
+    output logic o_sim_page_msg_valid,
+    output logic [PAGE_MSG_W-1:0] o_sim_page_msg,
+    output logic o_page_req_we,
+    output logic o_page_req_valid,
+    input  logic i_page_req_ready,
+    output logic [VIR_ADDR_W-1:0] o_page_req_addr,
+    output logic [LINE_W-1:0] o_page_req_wdata,
+    input  logic [VIR_ADDR_W-1:0] i_page_resp_addr,
+    input  logic i_page_resp_we,
+    input  logic [LINE_W-1:0] i_page_resp_wdata,
+    input  logic i_page_resp_valid,
+    output logic o_page_resp_ready,
+    input  logic i_page_transfer_done,
+    /* AXI4 Master for Page Engine */
+    output logic [31:0]                      m_axi4_page_awaddr,
+    output logic [7:0]                       m_axi4_page_awlen,
+    output logic [2:0]                       m_axi4_page_awsize,
+    output logic [1:0]                       m_axi4_page_awburst
+);
+
+    // Wires for Core
+    logic [VIR_ADDR_W-1:0]           core_req_instr_addr;
+    logic [$clog2(NUM_HW_THRDS)-1:0] core_req_instr_thrd_id;
+    logic [1:0]                      core_req_instr_priv;
+    logic                            core_req_instr_valid;
+    logic                            core_req_instr_ready;
+    logic [XLEN-1:0]                 core_resp_instr;
+    logic [$clog2(NUM_HW_THRDS)-1:0] core_resp_instr_thrd_id;
+    logic                            core_resp_instr_valid;
+    logic                            core_resp_instr_ready;
+    logic [VIR_ADDR_W-1:0]           core_req_data_addr;
+    logic [$clog2(NUM_HW_THRDS)-1:0] core_req_data_thrd_id;
+    logic [1:0]                      core_req_data_priv;
+    logic                            core_req_data_rw;
+    logic                            core_req_data_lq;
+    logic                            core_req_data_sc;
+    logic [XLEN/8-1:0]               core_req_data_wstrb;
+    logic [XLEN-1:0]                 core_req_data_wdata;
+    logic                            core_req_data_valid;
+    logic                            core_req_data_ready;
+    logic [XLEN-1:0]                 core_resp_data_rdata;
+    logic                            core_resp_data_sc_ok;
+    logic [$clog2(NUM_HW_THRDS)-1:0] core_resp_data_thrd_id;
+    logic                            core_resp_data_valid;
+    logic                            core_resp_data_ready;
+    logic [PAGE_MSG_W-1:0]           core_page_msg;
+    logic                            core_page_msg_valid;
+    logic                            core_page_msg_ready;
+    logic [PAGE_MSG_W-1:0]           core_page_msg_instr;
+    logic                            core_page_msg_instr_valid;
+    logic                            core_page_msg_instr_ready;
+    logic [PAGE_MSG_W-1:0]           core_page_msg_data;
+    logic                            core_page_msg_data_valid;
+    logic                            core_page_msg_data_ready;
+
+    // Fixed thread IDs for the single core (0..7)
+    logic [XLEN-1:0] thrd_ids [NUM_HW_THRDS-1:0];
+    for (genvar t = 0; t < NUM_HW_THRDS; t++) begin : gen_thrds
+        assign thrd_ids[t] = XLEN'(t);
+    end
+
+    logic [THREADS_PER_CLUSTER-1:0] r_ipi_vector;                       /* Antigravity 2026-06-29 */
+    logic [THREADS_PER_CLUSTER-1:0] wake_intr_vec;                      /* Antigravity 2026-06-29 */
+    logic page_completion_pending;
+    localparam int IPI_WORDS = (THREADS_PER_CLUSTER + XLEN - 1) / XLEN;
+    localparam int IPI_WORD_BYTES = XLEN / 8;
+    localparam logic [VIR_ADDR_W-1:0] IPI_BASE_ADDR = VIR_ADDR_W'(64'h0000_0010_0000_1000);
+
+    function automatic logic is_ipi_addr(input logic [VIR_ADDR_W-1:0] addr);
+        begin
+            is_ipi_addr = (addr >= IPI_BASE_ADDR) &&
+                          (addr < (IPI_BASE_ADDR + VIR_ADDR_W'(IPI_WORDS * IPI_WORD_BYTES))) &&
+                          (((addr - IPI_BASE_ADDR) % VIR_ADDR_W'(IPI_WORD_BYTES)) == 0);
+        end
+    endfunction
+
+    function automatic int ipi_word_index(input logic [VIR_ADDR_W-1:0] addr);
+        begin
+            ipi_word_index = int'((addr - IPI_BASE_ADDR) / VIR_ADDR_W'(IPI_WORD_BYTES));
+        end
+    endfunction
+
+    always_ff @(posedge i_clk) begin
+        if (!i_rst_n)
+            page_completion_pending <= 1'b0;
+        else if (i_page_transfer_done)
+            page_completion_pending <= 1'b1;
+        else if (o_page_req_valid)
+            page_completion_pending <= 1'b0;
+    end
+
+    always_comb begin                                                   /* Antigravity 2026-06-29 */
+        wake_intr_vec = r_ipi_vector;                                   /* Antigravity 2026-06-29 */
+        wake_intr_vec[0] = r_ipi_vector[0] | page_completion_pending |
+                           i_host_console_pending;                       /* Antigravity 2026-06-29 */
+    end                                                                 /* Antigravity 2026-06-29 */
+                                                                        /* Antigravity 2026-06-29 */
+    core core_inst (
+        .i_clk                   (i_clk),
+        .i_rst_n                 (i_rst_n),
+        .i_thrd_id_vec           (thrd_ids),
+        .i_wake_intr_vec         (wake_intr_vec),                       /* Antigravity 2026-06-29 */
+        .i_irq_timer_vec         ('0),
+        .i_req_instr_ready       (core_req_instr_ready),
+        .o_req_instr_addr        (core_req_instr_addr),
+        .o_req_instr_thrd_id     (core_req_instr_thrd_id),
+        .o_req_instr_priv        (core_req_instr_priv),
+        .o_req_instr_valid       (core_req_instr_valid),
+        .o_resp_instr_ready      (core_resp_instr_ready),
+        .i_resp_instr            (core_resp_instr),
+        .i_resp_instr_thrd_id    (core_resp_instr_thrd_id),
+        .i_resp_instr_valid      (core_resp_instr_valid),
+        .i_req_data_ready        (core_req_data_ready),
+        .o_req_data_addr         (core_req_data_addr),
+        .o_req_data_thrd_id      (core_req_data_thrd_id),
+        .o_req_data_priv         (core_req_data_priv),
+        .o_req_data_rw           (core_req_data_rw),
+        .o_req_data_lq           (core_req_data_lq),
+        .o_req_data_sc           (core_req_data_sc),
+        .o_req_data_wstrb        (core_req_data_wstrb),
+        .o_req_data_wdata        (core_req_data_wdata),
+        .o_req_data_valid        (core_req_data_valid),
+        .o_resp_data_ready       (core_resp_data_ready),
+        .i_resp_data_rdata       (core_resp_data_rdata),
+        .i_resp_data_sc_ok       (core_resp_data_sc_ok),
+        .i_resp_data_thrd_id     (core_resp_data_thrd_id),
+        .i_resp_data_valid       (core_resp_data_valid),
+        .i_page_msg_instr_valid  (core_page_msg_instr_valid),
+        .i_page_msg_instr        (core_page_msg_instr),
+        .o_page_msg_instr_ready  (core_page_msg_instr_ready),
+        .i_page_msg_data_valid   (core_page_msg_data_valid),
+        .i_page_msg_data         (core_page_msg_data),
+        .o_page_msg_data_ready   (core_page_msg_data_ready),
+        .o_page_msg_valid        (core_page_msg_valid),
+        .o_page_msg              (core_page_msg),
+        .i_page_msg_ready        (core_page_msg_ready)
+    );
+
+    // Wires for Memory (32 ports)
+    logic                            mem_req_we        [NUM_RW_PORTS-1:0];
+    logic [THRD_W-1:0]               mem_req_thrd      [NUM_RW_PORTS-1:0];
+    logic [1:0]                      mem_req_priv      [NUM_RW_PORTS-1:0];
+    logic                            mem_req_is_lr     [NUM_RW_PORTS-1:0];
+    logic                            mem_req_is_sc     [NUM_RW_PORTS-1:0];
+    logic [VIR_ADDR_W-1:0]           mem_req_addr      [NUM_RW_PORTS-1:0];
+    logic [XLEN/8-1:0]               mem_req_wstrb     [NUM_RW_PORTS-1:0];
+    logic [XLEN-1:0]                 mem_req_wdata     [NUM_RW_PORTS-1:0];
+    logic                            mem_req_valid     [NUM_RW_PORTS-1:0];
+    logic                            mem_req_ready     [NUM_RW_PORTS-1:0];
+    logic [XLEN-1:0]                 mem_resp_rdata    [NUM_RW_PORTS-1:0];
+    logic [THRD_W-1:0]               mem_resp_thrd     [NUM_RW_PORTS-1:0];
+    logic                            mem_resp_valid    [NUM_RW_PORTS-1:0];
+    logic                            mem_resp_ready    [NUM_RW_PORTS-1:0];
+    logic                            mem_resp_sc_succ  [NUM_RW_PORTS-1:0];
+    logic                            mem_i_msg_valid   [NUM_RW_PORTS-1:0];
+    logic                            mem_i_msg_ready   [NUM_RW_PORTS-1:0];
+    logic [PAGE_MSG_W-1:0]           mem_i_msg         [NUM_RW_PORTS-1:0];
+    logic                            mem_o_msg_ready   [NUM_RW_PORTS-1:0];
+    logic                            mem_o_msg_valid   [NUM_RW_PORTS-1:0];
+    logic [PAGE_MSG_W-1:0]           mem_o_msg         [NUM_RW_PORTS-1:0];
+
+    localparam int SYS_PORT_BASE = 2;
+    localparam int NUM_SYS_PORTS = sys_cnfg_pkg::NUM_PORTS;
+    localparam int NUM_MAPPED_SYS_PORTS =
+        (NUM_RW_PORTS > SYS_PORT_BASE) ?
+        (((NUM_RW_PORTS - SYS_PORT_BASE) < NUM_SYS_PORTS) ? (NUM_RW_PORTS - SYS_PORT_BASE) : NUM_SYS_PORTS) :
+        0;
+
+    // Initialize Unconnected/Default Memory Ports (Ports > mapped ports)
+    always_comb begin
+        for (int p = 0; p < NUM_RW_PORTS; p++) begin
+            if (p >= SYS_PORT_BASE + NUM_MAPPED_SYS_PORTS) begin
+                mem_req_we[p]      = 1'b0;
+                mem_req_thrd[p]    = '0;
+                mem_req_priv[p]    = 2'b11; // Default to M-mode
+                mem_req_is_lr[p]   = 1'b0;
+                mem_req_is_sc[p]   = 1'b0;
+                mem_req_addr[p]    = '0;
+                mem_req_wstrb[p]   = '0;
+                mem_req_wdata[p]   = '0;
+                mem_req_valid[p]   = 1'b0;
+                mem_resp_ready[p]  = 1'b0;
+
+                mem_i_msg_valid[p] = 1'b0;
+                mem_i_msg[p]       = '0;
+                mem_o_msg_ready[p] = 1'b0;
+            end
+        end
+    end
+
+    // Direct Connection: Core Instr (Port 0) <-> Memory Port 0
+    assign mem_req_we[0]      = 1'b0;
+    assign mem_req_thrd[0]    = THRD_W'(core_req_instr_thrd_id);
+    assign mem_req_priv[0]    = core_req_instr_priv;
+    assign mem_req_is_lr[0]   = 1'b0;
+    assign mem_req_is_sc[0]   = 1'b0;
+    assign mem_req_addr[0]    = core_req_instr_addr;
+    assign mem_req_wstrb[0]   = '0;
+    assign mem_req_wdata[0]   = '0;
+    assign mem_req_valid[0]   = core_req_instr_valid;
+    assign core_req_instr_ready = mem_req_ready[0];
+    assign mem_resp_ready[0]  = core_resp_instr_ready;
+    assign core_resp_instr    = mem_resp_rdata[0];
+    assign core_resp_instr_thrd_id = $clog2(NUM_HW_THRDS)'(mem_resp_thrd[0]);
+    assign core_resp_instr_valid = mem_resp_valid[0];
+    assign mem_i_msg_valid[0] = core_page_msg_valid;
+    assign mem_i_msg[0]       = core_page_msg;
+    assign core_page_msg_ready = mem_i_msg_ready[0];
+    assign core_page_msg_instr_valid = mem_o_msg_valid[0];
+    assign core_page_msg_instr = mem_o_msg[0];
+    assign mem_o_msg_ready[0] = core_page_msg_instr_ready;
+
+    // MMIO Dispatcher
+    logic is_uart_mmio;
+    logic is_ipi_mmio;                                                  /* Antigravity 2026-06-29 */
+    logic is_mmio_req;
+    logic is_mmio_req_d;
+    logic is_ipi_mmio_d;                                                /* Antigravity 2026-06-29 */
+    logic is_machine_data_req;
+
+`ifndef SYNTHESIS
+    logic r_dummy_complete;
+    logic [$clog2(NUM_HW_THRDS)-1:0] r_dummy_thrd_id;
+    logic is_out_of_bounds_region;
+    
+    assign is_out_of_bounds_region = is_machine_data_req && ((core_req_data_addr[31:28] != 4'd0) || (core_req_data_addr[27:24] != 4'd0));
+    
+    always_ff @(posedge i_clk) begin
+        if (!i_rst_n) begin
+            r_dummy_complete <= 1'b0;
+            r_dummy_thrd_id  <= '0;
+        end else begin
+            if (core_req_data_valid && is_out_of_bounds_region && core_req_data_ready) begin
+                r_dummy_complete <= 1'b1;
+                r_dummy_thrd_id  <= core_req_data_thrd_id;
+            end else if (r_dummy_complete) begin
+                r_dummy_complete <= 1'b0;
+            end
+        end
+    end
+`else
+    logic r_dummy_complete;
+    logic [$clog2(NUM_HW_THRDS)-1:0] r_dummy_thrd_id;
+    logic is_out_of_bounds_region;
+    assign is_out_of_bounds_region = 1'b0;
+    assign r_dummy_complete = 1'b0;
+    assign r_dummy_thrd_id = '0;
+`endif
+
+
+    logic [XLEN-1:0] r_ipi_read_data;                                   /* Antigravity 2026-06-29 */
+    logic r_ipi_was_write;                                              /* Antigravity 2026-06-29 */
+    
+    assign is_machine_data_req = core_req_data_priv == 2'b11;
+    assign is_uart_mmio   = is_machine_data_req && (core_req_data_addr >= VIR_ADDR_W'(32'h10000000)) && (core_req_data_addr <= VIR_ADDR_W'(32'h1000001F)) && core_req_data_valid;
+    assign is_ipi_mmio    = is_machine_data_req && is_ipi_addr(core_req_data_addr) && core_req_data_valid; /* Antigravity 2026-06-29 */
+    assign is_mmio_req    = is_uart_mmio || is_ipi_mmio;
+
+    always_ff @(posedge i_clk) begin                                    /* Antigravity 2026-06-29 */
+        if (!i_rst_n) begin                                             /* Antigravity 2026-06-29 */
+            r_ipi_vector <= '0;                                         /* Antigravity 2026-06-29 */
+            is_ipi_mmio_d <= 1'b0;                                      /* Antigravity 2026-06-29 */
+            r_ipi_read_data <= '0;                                      /* Antigravity 2026-06-29 */
+            r_ipi_was_write <= 1'b0;                                    /* Antigravity 2026-06-29 */
+        end else begin                                                  /* Antigravity 2026-06-29 */
+            if (is_ipi_mmio && core_req_data_ready) begin               /* Antigravity 2026-06-29 */
+                int ipi_word;                                           /* Antigravity 2026-06-29 */
+                ipi_word = ipi_word_index(core_req_data_addr);          /* Antigravity 2026-06-29 */
+                is_ipi_mmio_d <= 1'b1;                                  /* Antigravity 2026-06-29 */
+                if (core_req_data_rw) begin                             /* Antigravity 2026-06-29 */
+                    for (int b = 0; b < THREADS_PER_CLUSTER; b++) begin /* Antigravity 2026-06-29 */
+                        if ((b / XLEN) == ipi_word) begin               /* Antigravity 2026-06-29 */
+                            r_ipi_vector[b] <= core_req_data_wdata[b % XLEN]; /* Antigravity 2026-06-29 */
+                        end                                             /* Antigravity 2026-06-29 */
+                    end                                                 /* Antigravity 2026-06-29 */
+                    r_ipi_was_write <= 1'b1;                            /* Antigravity 2026-06-29 */
+                end else begin                                          /* Antigravity 2026-06-29 */
+                    r_ipi_read_data <= '0;                              /* Antigravity 2026-06-29 */
+                    for (int b = 0; b < THREADS_PER_CLUSTER; b++) begin /* Antigravity 2026-06-29 */
+                        if ((b / XLEN) == ipi_word) begin               /* Antigravity 2026-06-29 */
+                            r_ipi_read_data[b % XLEN] <= r_ipi_vector[b]; /* Antigravity 2026-06-29 */
+                        end                                             /* Antigravity 2026-06-29 */
+                    end                                                 /* Antigravity 2026-06-29 */
+                    r_ipi_was_write <= 1'b0;                            /* Antigravity 2026-06-29 */
+                end                                                     /* Antigravity 2026-06-29 */
+            end else if (is_ipi_mmio_d) begin                           /* Antigravity 2026-06-29 */
+                is_ipi_mmio_d <= 1'b0;                                  /* Antigravity 2026-06-29 */
+                if (r_ipi_was_write) begin                              /* Antigravity 2026-06-29 */
+                    r_ipi_vector <= '0;                                 /* Antigravity 2026-06-29 */
+                end                                                     /* Antigravity 2026-06-29 */
+            end                                                         /* Antigravity 2026-06-29 */
+        end                                                             /* Antigravity 2026-06-29 */
+    end                                                                 /* Antigravity 2026-06-29 */
+
+    always_ff @(posedge i_clk) begin
+        if (is_machine_data_req && core_req_data_addr == VIR_ADDR_W'(32'h10000000) && core_req_data_valid && core_req_data_ready && core_req_data_rw) begin
+            sim_uart_tx(core_req_data_wdata[7:0]);
+        end
+    end
+
+    import "DPI-C" context function void sim_uart_tx(input byte data);
+    import "DPI-C" context function int sim_uart_rx();
+
+    logic [31:0] dpi_rx_data;
+    logic        dpi_rx_valid;
+    logic [31:0] dpi_rx_resp_rdata;
+    
+    always_ff @(posedge i_clk) begin
+        if (!i_rst_n) begin
+            dpi_rx_valid <= 1'b0;
+            dpi_rx_data <= 32'd0;
+            dpi_rx_resp_rdata <= 32'd0;
+        end else begin
+            if (!dpi_rx_valid) begin
+                int rx_val;
+                rx_val = sim_uart_rx();
+                if (rx_val[31]) begin
+                    dpi_rx_data <= rx_val;
+                    dpi_rx_valid <= 1'b1;
+                end
+            end else if (is_machine_data_req && core_req_data_addr == VIR_ADDR_W'(32'h10000004) && core_req_data_valid && core_req_data_ready && !core_req_data_rw) begin
+                dpi_rx_valid <= 1'b0;
+            end
+
+            if (is_machine_data_req && core_req_data_addr == VIR_ADDR_W'(32'h10000004) && core_req_data_valid && core_req_data_ready && !core_req_data_rw) begin
+                if (dpi_rx_valid) begin
+                    dpi_rx_resp_rdata <= {1'b0, 23'd0, dpi_rx_data[7:0]};
+                end else begin
+                    dpi_rx_resp_rdata <= {1'b1, 31'd0};
+                end
+            end
+        end
+    end
+
+    // Direct Connection: Core Data (Port 1) <-> Memory Port 1
+    assign mem_req_we[1]      = core_req_data_rw;
+    assign mem_req_thrd[1]    = THRD_W'(core_req_data_thrd_id);
+    assign mem_req_priv[1]    = core_req_data_priv;
+    assign mem_req_is_lr[1]   = core_req_data_lq;
+    assign mem_req_is_sc[1]   = core_req_data_sc;
+    assign mem_req_addr[1]    = core_req_data_addr;
+
+    logic [$clog2(NUM_HW_THRDS)-1:0] r_mmio_thrd_id;
+    logic is_sys_kick;
+    logic is_sys_kick_d;
+    assign is_sys_kick = 1'b0;
+    always_ff @(posedge i_clk) begin
+        if (!i_rst_n) begin
+            is_sys_kick_d  <= 1'b0;
+            is_mmio_req_d  <= 1'b0;
+            r_mmio_thrd_id <= '0;
+        end else begin
+            is_mmio_req_d <= is_mmio_req;
+            if (is_sys_kick && core_req_data_valid && core_req_data_ready) begin
+                is_sys_kick_d  <= 1'b1;
+            end else if (is_sys_kick_d) begin
+                is_sys_kick_d  <= 1'b0;
+            end
+
+            if (is_mmio_req && core_req_data_valid && core_req_data_ready) begin
+                r_mmio_thrd_id <= core_req_data_thrd_id;
+            end
+        end
+    end
+
+    assign mem_req_wstrb[1]   = core_req_data_wstrb;
+    assign mem_req_wdata[1]   = core_req_data_wdata;
+    assign mem_req_valid[1]   = core_req_data_valid && !is_mmio_req && !is_out_of_bounds_region;
+    
+    logic        uart_req_ready;
+    logic        uart_resp_valid;
+    logic [31:0] uart_resp_rdata;
+    logic        uart_tx;
+
+    uart_mmio #(
+        .BASE_ADDR(32'h1000_0000),
+        .RX_DEPTH(1024),
+        .TX_DEPTH(1024)
+    ) uart_mmio_inst (
+        .i_clk(i_clk),
+        .i_rst_n(i_rst_n),
+        .i_req_valid(is_uart_mmio),
+        .o_req_ready(uart_req_ready),
+        .i_req_addr(core_req_data_addr[31:0]),
+        .i_req_wdata(core_req_data_wdata[31:0]),
+        .i_req_wmask(core_req_data_wstrb[3:0]),
+        .o_resp_valid(uart_resp_valid),
+        .o_resp_rdata(uart_resp_rdata),
+        .i_resp_ready(core_resp_data_ready),
+        .i_rx(i_uart_rx),
+        .o_tx(o_uart_tx)
+    );
+
+    logic sys_kick_ready;
+    assign core_req_data_ready = 
+        is_uart_mmio ? uart_req_ready :
+        is_sys_kick  ? (!is_sys_kick_d && sys_kick_ready) :
+        is_ipi_mmio  ? !is_ipi_mmio_d :
+        is_out_of_bounds_region ? 1'b1 :
+                       mem_req_ready[1];
+
+    assign mem_resp_ready[1]  = core_resp_data_ready;
+
+    logic [31:0] intercepted_uart_rdata;
+    always_comb begin
+        intercepted_uart_rdata = uart_resp_rdata;
+        if (core_req_data_addr == VIR_ADDR_W'(32'h10000004)) begin
+            intercepted_uart_rdata = dpi_rx_resp_rdata;
+        end
+    end
+
+    assign core_resp_data_rdata = 
+        uart_resp_valid ? XLEN'(intercepted_uart_rdata) :
+        is_ipi_mmio_d   ? r_ipi_read_data :
+        r_dummy_complete ? '0 :
+                          mem_resp_rdata[1];
+
+    assign core_resp_data_thrd_id = 
+        (uart_resp_valid || is_ipi_mmio_d) ? r_mmio_thrd_id :
+        r_dummy_complete ? r_dummy_thrd_id :
+                           $clog2(NUM_HW_THRDS)'(mem_resp_thrd[1]);
+
+    assign core_resp_data_valid = 
+        uart_resp_valid ? 1'b1 :
+        is_ipi_mmio_d   ? 1'b1 :
+        r_dummy_complete ? 1'b1 :
+                          mem_resp_valid[1];
+
+    assign core_resp_data_sc_ok = 
+        (uart_resp_valid || is_ipi_mmio_d || r_dummy_complete) ? 1'b0 :
+                                                             mem_resp_sc_succ[1];
+    assign mem_i_msg_valid[1] = 1'b0;
+    assign mem_i_msg[1]       = '0;
+    assign mem_o_msg_ready[1] = core_page_msg_data_ready;
+    assign core_page_msg_data_valid = mem_o_msg_valid[1];
+    assign core_page_msg_data = mem_o_msg[1];
+
+endmodule: soc

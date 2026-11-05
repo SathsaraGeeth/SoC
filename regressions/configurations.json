@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "configurations": [
+    {
+      "id": "small-single",
+      "description": "Smallest fast single region",
+      "tiers": ["smoke", "nightly", "weekly"],
+      "soc": {
+        "grid_x": 2,
+        "grid_y": 2,
+        "single_region": true,
+        "cores_per_cluster": 1,
+        "threads_per_core": 2,
+        "mesh_coord_bits": 4,
+        "page_words_bits": 9,
+        "num_pages_bits": 10,
+        "sys_cores_per_cluster": 0,
+        "sys_array_mac_t": 0,
+        "sys_array_m": 8,
+        "sys_array_max_dense_mat_sz": 256,
+        "clock_freq_hz": 1000000000
+      }
+    },
+    {
+      "id": "small-multi",
+      "description": "Small multi region",
+      "tiers": ["nightly", "weekly"],
+      "soc": {
+        "grid_x": 2,
+        "grid_y": 2,
+        "single_region": false,
+        "cores_per_cluster": 1,
+        "threads_per_core": 2,
+        "mesh_coord_bits": 4,
+        "page_words_bits": 9,
+        "num_pages_bits": 10,
+        "sys_cores_per_cluster": 0,
+        "sys_array_mac_t": 0,
+        "sys_array_m": 8,
+        "sys_array_max_dense_mat_sz": 256,
+        "clock_freq_hz": 1000000000
+      }
+    },
+    {
+      "id": "dual-core",
+      "description": "single region with mutliple cores and multple threads",
+      "tiers": ["nightly", "weekly"],
+      "soc": {
+        "grid_x": 2,
+        "grid_y": 2,
+        "single_region": true,
+        "cores_per_cluster": 2,
+        "threads_per_core": 4,
+        "mesh_coord_bits": 4,
+        "page_words_bits": 9,
+        "num_pages_bits": 10,
+        "sys_cores_per_cluster": 0,
+        "sys_array_mac_t": 0,
+        "sys_array_m": 8,
+        "sys_array_max_dense_mat_sz": 256,
+        "clock_freq_hz": 1000000000
+      }
+    },
+    {
+      "id": "sys-array",
+      "description": "Systolic array with runtime int8 and fp8",
+      "tiers": ["nightly", "weekly"],
+      "soc": {
+        "grid_x": 2,
+        "grid_y": 2,
+        "single_region": true,
+        "cores_per_cluster": 1,
+        "threads_per_core": 4,
+        "mesh_coord_bits": 4,
+        "page_words_bits": 9,
+        "num_pages_bits": 10,
+        "sys_cores_per_cluster": 1,
+        "sys_array_mac_t": 2,
+        "sys_array_m": 8,
+        "sys_array_max_dense_mat_sz": 256,
+        "clock_freq_hz": 1000000000
+      }
+    },
+    {
+      "id": "sys-array-int",
+      "description": "Systolic array with only int8",
+      "tiers": ["nightly", "weekly"],
+      "soc": {
+        "grid_x": 2,
+        "grid_y": 2,
+        "single_region": true,
+        "cores_per_cluster": 1,
+        "threads_per_core": 4,
+        "mesh_coord_bits": 4,
+        "page_words_bits": 9,
+        "num_pages_bits": 10,
+        "sys_cores_per_cluster": 1,
+        "sys_array_mac_t": 0,
+        "sys_array_m": 8,
+        "sys_array_max_dense_mat_sz": 256,
+        "clock_freq_hz": 1000000000
+      }
+    },
+    {
+      "id": "sys-array-fp8",
+      "description": "Systolic array with only FP8",
+      "tiers": ["weekly"],
+      "soc": {
+        "grid_x": 2,
+        "grid_y": 2,
+        "single_region": false,
+        "cores_per_cluster": 2,
+        "threads_per_core": 16,
+        "mesh_coord_bits": 4,
+        "page_words_bits": 9,
+        "num_pages_bits": 10,
+        "sys_cores_per_cluster": 1,
+        "sys_array_mac_t": 1,
+        "sys_array_m": 8,
+        "sys_array_max_dense_mat_sz": 256,
+        "clock_freq_hz": 1000000000
+      }
+    },
+    {
+      "id": "mesh-4x4",
+      "description": "4x4 multi region mesh with multiple cores and multple threads",
+      "tiers": ["weekly"],
+      "soc": {
+        "grid_x": 4,
+        "grid_y": 4,
+        "single_region": false,
+        "cores_per_cluster": 2,
+        "threads_per_core": 8,
+        "mesh_coord_bits": 4,
+        "page_words_bits": 9,
+        "num_pages_bits": 10,
+        "sys_cores_per_cluster": 1,
+        "sys_array_mac_t": 0,
+        "sys_array_m": 8,
+        "sys_array_max_dense_mat_sz": 256,
+        "clock_freq_hz": 1000000000
+      }
+    }
+  ]
+}

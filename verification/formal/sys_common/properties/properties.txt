@@ -1,0 +1,9 @@
+P1 reset
+P2 register
+P3 mux
+P4 fixed delay
+P5 multiplier
+P6 adder
+P7 variable delay
+P8 counter
+

@@ -1,0 +1,30 @@
+Proofs
+------
+
+Reset
+P1. Reset or synchronous clear returns the level, pointers, and dequeue state to empty.
+
+Status
+P2. The empty flag is asserted exactly when the level is zero.
+P3. The full flag is asserted exactly when the level equals depth.
+P4. The level never exceeds the configured depth.
+P5. Enqueue and dequeue ready agree with full and empty status.
+
+Protocol
+P6. An enqueue without a dequeue increments the level.
+P7. A dequeue without an enqueue decrements the level.
+P8. Simultaneous enqueue/dequeue or no operation preserves the level.
+P9. The buffer cannot accept a dequeue while empty or an enqueue while full.
+
+Data
+P10. An arbitrarily selected accepted enqueue is returned only after every older entry and with unchanged data.
+
+Cover
+-----------
+
+C1. Cover reset release in the empty state.
+C2. Cover an accepted enqueue.
+C3. Cover reaching the full state.
+C4. Cover simultaneous enqueue and dequeue.
+C5. Cover write-pointer wraparound.
+C6. Cover synchronous clear from a nonempty state.

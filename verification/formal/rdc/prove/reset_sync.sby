@@ -1,0 +1,14 @@
+[options]
+mode prove
+depth 12
+
+[engines]
+smtbmc boolector
+
+[script]
+read -formal reset_sync.sv reset_sync_formal.sv
+prep -top reset_sync_formal
+
+[files]
+../../../rtl/common/reset/reset_sync.sv
+env/reset_sync_formal.sv

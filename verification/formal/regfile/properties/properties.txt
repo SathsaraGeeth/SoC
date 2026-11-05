@@ -1,0 +1,66 @@
+Proofs
+------
+
+x0 hardwiring
+
+P1. Reading x0 (rs1/rs2/rs3_addr == 0) always returns zero, regardless
+of thread.
+
+P2. Writing to x0 (rd_addr == 0 and write-enable asserted) has no effect:
+x0 reads zero on the following cycle even though a write was attempted.
+
+Read consistency
+
+P3. If two read ports target the same address and the same thread, they
+return identical data. This applies to rs1, rs2, and rs3.
+
+P4. Reading a register never alters its stored value.
+
+Write/read timing
+
+P5. A write takes effect starting the cycle after write-enable is asserted.
+
+P6. If a read port targets the same address and thread currently being
+written, it returns the old value in that cycle. The register file does not
+forward the new write data.
+
+P7. The written value is observable on any read port from the following
+cycle onward, until it is overwritten.
+
+Write isolation
+
+P8. Writing register N does not change any other register M in the same
+thread or any register in another thread.
+
+P9. If no write targets an address/thread pair during a cycle, its stored
+value remains unchanged.
+
+P10. For back-to-back writes to the same address and thread, the most recent
+write wins.
+
+Thread isolation
+
+P11. The write port is scoped by wthrd_id and the read ports by rthrd_id.
+Writing an address in thread A must not affect the same numeric address in
+thread B.
+
+P12. Each hardware thread's x0 is independently hardwired to zero.
+
+Cover goals
+-----------
+
+C1. Cover a successful write reaching a later read for every thread.
+
+C2. Cover simultaneous reads through rs1, rs2, and rs3 from three different
+addresses in the same thread.
+
+C3. Cover a same-cycle read and write to the same address/thread pair,
+exercising the no-forwarding path.
+
+C4. Cover an attempted write to x0 so the x0 protection property is not
+vacuously true.
+
+C5. Cover back-to-back writes to the same address/thread pair.
+
+C6. Cover a write in thread A and a read in thread B using the same numeric
+address in the same cycle.

@@ -1,0 +1,15 @@
+Proofs
+------
+
+P1. Reset empties both ALU pipeline stages.
+P2. Output payload and metadata remain stable under backpressure.
+P3. Public output state exactly reflects stage two.
+P4. Arithmetic, logic, shift, comparison, and multiply-low selection is correct.
+P5. Jump result and branch metadata follow control-flow semantics.
+
+Cover
+-----
+
+C1. Requests and stalled results are reachable.
+C2. Multiply, taken-branch, and jump results are reachable.
+

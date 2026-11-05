@@ -1,0 +1,11 @@
+Proofs
+------
+P1. Reset clears command, ownership, MMIO, interrupt, and counter state.
+P2. MMIO readiness obeys response capacity and owner-only access.
+P3. Accepted requests create a response that remains stable under backpressure.
+P4. Command words shift in the documented order and wrap after four words.
+P5. Delegation captures the command TID; release clears ownership.
+P6. Ownership and owner identity remain stable between ownership commands.
+
+Child datapaths use contracts and are covered by their separate formal/UVM suites.
+

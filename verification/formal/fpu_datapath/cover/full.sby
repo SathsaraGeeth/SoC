@@ -1,0 +1,25 @@
+# FPU datapath reachability cover.
+
+[options]
+mode cover
+depth 14
+
+[engines]
+smtbmc boolector
+
+[script]
+plugin -i slang
+read_slang -D FORMAL --top fpu_datapath_formal isa_pkg.sv fpu_pkg.sv fpu_functions_pkg.sv fpu_iter.sv fpu.sv fpu_datapath_env.sv
+prep -top fpu_datapath_formal
+
+[files]
+../../../rtl/isa/isa_pkg.sv
+../../../rtl/core/fpu/fpu_pkg.sv
+../../../rtl/core/fpu/fpu_functions_pkg.sv
+../../../rtl/core/fpu/fpu_iter.sv
+../../../rtl/core/fpu/fpu.sv
+env/fpu_datapath_env.sv
+env/fpu_datapath_assumptions.sv
+env/fpu_datapath_coverpoints.sv
+properties/fpu_datapath_reset.sv
+properties/fpu_datapath_routing.sv

@@ -1,0 +1,346 @@
+# F.yaml
+#
+# Copyright (C) 2026 Sathsara Geeth
+#
+# Version 1.0
+#
+# Version History
+#
+# Version | Description
+# --------+-----------------------------------------
+# 1.0     | Initial implementation
+#
+# Comments:
+# 1.
+
+module: F
+requires:
+- I
+groups:
+  f_instructions:
+    LOAD_f32:
+      opcode: LOAD
+      format: I
+      mnemonic: LOAD.f32
+      decode: false
+      funct3: 2
+      alias_of: LOAD.i32
+    LOAD_f16:
+      opcode: FLOAD
+      format: I
+      mnemonic: LOAD.f16
+      funct3: 1
+      selection:
+        kind: custom
+        handler: LowerFMemory
+    LOAD_bf16:
+      opcode: FLOAD
+      format: I
+      mnemonic: LOAD.bf16
+      funct3: 2
+      selection:
+        kind: custom
+        handler: LowerFMemory
+    STORE_f32:
+      opcode: STORE
+      format: S
+      mnemonic: STORE.f32
+      decode: false
+      funct3: 2
+      alias_of: STORE.32
+    STORE_f16:
+      opcode: FSTORE
+      format: S
+      mnemonic: STORE.f16
+      funct3: 1
+      selection:
+        kind: custom
+        handler: LowerFMemory
+    STORE_bf16:
+      opcode: FSTORE
+      format: S
+      mnemonic: STORE.bf16
+      funct3: 2
+      selection:
+        kind: custom
+        handler: LowerFMemory
+    ADD_f32:
+      mnemonic: ADD.f32
+      opcode: FALU
+      format: R
+      funct3: 0
+      funct7: 0
+    SUB_f32:
+      mnemonic: SUB.f32
+      opcode: FALU
+      format: R
+      funct3: 0
+      funct7: 4
+    MUL_f32:
+      mnemonic: MUL.f32
+      opcode: FALU
+      format: R
+      funct3: 0
+      funct7: 8
+    SQRT_f32:
+      mnemonic: SQRT.f32
+      opcode: FALU
+      format: R
+      funct3: 0
+      funct7: 44
+      rs2_fixed: 0
+    FMIN_f32:
+      mnemonic: FMIN.f32
+      opcode: FALU
+      format: R
+      funct3: 0
+      funct7: 20
+    FMAX_f32:
+      mnemonic: FMAX.f32
+      opcode: FALU
+      format: R
+      funct3: 1
+      funct7: 20
+    FEQ_f32:
+      mnemonic: FEQ.f32
+      opcode: FALU
+      format: R
+      funct3: 2
+      funct7: 80
+    FLT_f32:
+      mnemonic: FLT.f32
+      opcode: FALU
+      format: R
+      funct3: 1
+      funct7: 80
+    FLE_f32:
+      mnemonic: FLE.f32
+      opcode: FALU
+      format: R
+      funct3: 0
+      funct7: 80
+    FMADD_f32:
+      mnemonic: FMADD.f32
+      opcode: FMADD
+      format: R4
+      funct3: 0
+      funct2: 0
+    FMSUB_f32:
+      mnemonic: FMSUB.f32
+      opcode: FMSUB
+      format: R4
+      funct3: 0
+      funct2: 0
+    FNMSUB_f32:
+      mnemonic: FNMSUB.f32
+      opcode: FMSUB
+      format: R4
+      funct3: 0
+      funct2: 1
+    FNMADD_f32:
+      mnemonic: FNMADD.f32
+      opcode: FMADD
+      format: R4
+      funct3: 0
+      funct2: 1
+    FSGNJ_f32:
+      mnemonic: FSGNJ.f32
+      opcode: FALU
+      format: R
+      funct3: 0
+      funct7: 16
+    FSGNJN_f32:
+      mnemonic: FSGNJN.f32
+      opcode: FALU
+      format: R
+      funct3: 1
+      funct7: 16
+    FSGNJX_f32:
+      mnemonic: FSGNJX.f32
+      opcode: FALU
+      format: R
+      funct3: 2
+      funct7: 16
+    FCLASS_f32:
+      mnemonic: FCLASS.f32
+      opcode: FALU
+      format: R
+      funct3: 1
+      funct7: 112
+      rs2_fixed: 0
+    FCVT_f32_i64:
+      mnemonic: FCVT.f32.i64
+      opcode: FALU
+      format: R
+      funct3: 0
+      funct7: 104
+      rs2_fixed: 0
+    FCVT_f32_i32:
+      mnemonic: FCVT.f32.i32
+      opcode: FALU
+      format: R
+      funct3: 0
+      funct7: 104
+      rs2_fixed: 1
+    FCVT_i32_f32:
+      mnemonic: FCVT.i32.f32
+      opcode: FALU
+      format: R
+      funct3: 0
+      funct7: 96
+      rs2_fixed: 0
+    FCVT_i64_f32:
+      mnemonic: FCVT.i64.f32
+      opcode: FALU
+      format: R
+      funct3: 0
+      funct7: 96
+      rs2_fixed: 1
+semantics:
+  LOAD.f32:
+    operation: load
+    type: f32
+    alias_of: LOAD.i32
+    selection:
+      kind: load
+  STORE.f32:
+    operation: store
+    type: f32
+    alias_of: STORE.32
+    selection:
+      kind: store
+  ADD.f32:
+    operation: fadd
+    type: f32
+    selection:
+      kind: binary
+      node: fadd
+  SUB.f32:
+    operation: fsub
+    type: f32
+    selection:
+      kind: binary
+      node: fsub
+  MUL.f32:
+    operation: fmul
+    type: f32
+    selection:
+      kind: binary
+      node: fmul
+  SQRT.f32:
+    operation: fsqrt
+    type: f32
+    selection:
+      kind: unary
+      node: fsqrt
+  FMIN.f32:
+    operation: fmin
+    type: f32
+    selection:
+      kind: binary
+      node: fminnum
+  FMAX.f32:
+    operation: fmax
+    type: f32
+    selection:
+      kind: binary
+      node: fmaxnum
+  FEQ.f32:
+    operation: fcmp
+    predicate: seteq
+    type: f32
+    selection:
+      kind: compare
+  FLT.f32:
+    operation: fcmp
+    predicate: setlt
+    type: f32
+    selection:
+      kind: compare
+  FLE.f32:
+    operation: fcmp
+    predicate: setle
+    type: f32
+    selection:
+      kind: compare
+  FMADD.f32:
+    operation: fma
+    type: f32
+    selection:
+      kind: ternary
+      node: fma
+  FMSUB.f32:
+    operation: fma
+    subtract: true
+    type: f32
+    selection:
+      kind: custom
+      handler: LowerFMSUB
+  FNMSUB.f32:
+    operation: fma
+    negate: true
+    subtract: true
+    type: f32
+    selection:
+      kind: custom
+      handler: LowerFNMSUB
+  FNMADD.f32:
+    operation: fma
+    negate: true
+    type: f32
+    selection:
+      kind: custom
+      handler: LowerFNMADD
+  FSGNJ.f32:
+    operation: fcopysign
+    type: f32
+    selection:
+      kind: binary
+      node: fcopysign
+  FSGNJN.f32:
+    operation: fcopysign
+    negate_sign: true
+    type: f32
+    selection:
+      kind: custom
+      handler: LowerFSGNJN
+  FSGNJX.f32:
+    operation: fsignxor
+    type: f32
+    selection:
+      kind: custom
+      handler: LowerFSGNJX
+  FCLASS.f32:
+    operation: fclass
+    type: f32
+    selection:
+      kind: custom
+      handler: LowerFCLASS
+  FCVT.f32.i64:
+    operation: sitofp
+    from: i64
+    to: f32
+    selection:
+      kind: convert
+      node: sint_to_fp
+  FCVT.f32.i32:
+    operation: sitofp
+    from: i32
+    to: f32
+    selection:
+      kind: convert
+      node: sint_to_fp
+  FCVT.i32.f32:
+    operation: fptosi
+    from: f32
+    to: i32
+    selection:
+      kind: convert
+      node: fp_to_sint
+  FCVT.i64.f32:
+    operation: fptosi
+    from: f32
+    to: i64
+    selection:
+      kind: convert
+      node: fp_to_sint
